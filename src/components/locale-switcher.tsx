@@ -8,7 +8,7 @@ export function LocaleSwitcher({ className }: { className?: string }) {
   const locale = useLocale();
   const [pending, start] = useTransition();
   return (
-    <div className={clsx("glass relative flex rounded-full p-0.5 text-xs font-semibold", pending && "opacity-60", className)}>
+    <div className={clsx("glass relative inline-flex w-fit rounded-full p-0.5 text-xs font-semibold", pending && "opacity-60", className)}>
       {(["en", "my"] as const).map((l) => (
         <button
           key={l}

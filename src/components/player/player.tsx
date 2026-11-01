@@ -212,7 +212,7 @@ export function Player(props: {
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0 }}
                       transition={{ duration: 0.15 }}
-                      className="pointer-events-none absolute inset-x-6 bottom-28 text-center"
+                      className="pointer-events-none absolute bottom-28 left-5 right-20 text-center"
                     >
                       <span lang={subLang} className="box-decoration-clone rounded-lg bg-black/55 px-3 py-1 text-[17px] font-medium leading-[2] text-white shadow-lg backdrop-blur-sm [font-family:var(--font-myanmar),var(--font-jakarta)]">
                         {activeCue.text}
