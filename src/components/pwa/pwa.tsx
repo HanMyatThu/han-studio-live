@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { AnimatePresence, motion } from "framer-motion";
 import { Download, Share, X } from "lucide-react";
@@ -23,6 +24,9 @@ export function Pwa() {
   const [event, setEvent] = useState<InstallEvent | null>(null);
   const [ios, setIos] = useState(false);
   const [show, setShow] = useState(false);
+  const path = usePathname();
+  // Never cover the player, the feed or the admin dashboard.
+  const allowed = !/^\/(watch|feed|admin|login|register)/.test(path);
 
   useEffect(() => {
     if ("serviceWorker" in navigator && process.env.NODE_ENV === "production") {
@@ -58,7 +62,7 @@ export function Pwa() {
 
   return (
     <AnimatePresence>
-      {show && (event || ios) && (
+      {show && allowed && (event || ios) && (
         <motion.div
           initial={{ y: 120, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}

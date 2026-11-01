@@ -12,11 +12,23 @@ type Props = {
 /** Drama poster. Uses the uploaded image, or generates cinematic art from the title and accent colour. */
 export function Poster({ title, accent, posterUrl, genre, className, size = "md" }: Props) {
   if (posterUrl) {
+    // Posters taken automatically from the video have no title on them, so we add one.
+    const auto = posterUrl.includes("/posters/auto-");
     return (
       <div className={clsx("relative overflow-hidden bg-ink-800", className)}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={posterUrl} alt={title} className="absolute inset-0 h-full w-full object-cover" loading="lazy" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+        <div className={clsx("absolute inset-0 bg-gradient-to-t to-transparent", auto ? "from-black/90 via-black/20" : "from-black/70 via-transparent")} />
+        {auto && (
+          <div className="absolute inset-x-0 bottom-0 p-3">
+            {genre && size !== "sm" && (
+              <div className="mb-1 text-[10px] font-semibold uppercase tracking-[0.2em]" style={{ color: accent }}>{genre}</div>
+            )}
+            <div className={clsx("font-display font-extrabold leading-[1.05] tracking-tight text-white drop-shadow-lg", size === "lg" ? "text-3xl" : size === "sm" ? "text-sm" : "text-lg")}>
+              {title}
+            </div>
+          </div>
+        )}
       </div>
     );
   }
