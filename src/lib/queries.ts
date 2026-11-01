@@ -2,7 +2,7 @@ import "server-only";
 import { db } from "./db";
 
 export const dramaCardSelect = {
-  id: true, slug: true, title: true, titleMy: true, genre: true, posterUrl: true, accent: true,
+  id: true, slug: true, title: true, titleMy: true, genre: true, posterUrl: true, previewKey: true, accent: true,
   freeEpisodes: true, views: true, synopsis: true, synopsisMy: true, featured: true, createdAt: true,
   _count: { select: { episodes: { where: { status: "READY" } } } },
 } as const;

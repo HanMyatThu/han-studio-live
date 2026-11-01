@@ -6,6 +6,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { getActiveSubscription } from "@/lib/access";
 import { getContinueWatching, getPublishedDramas, GENRES } from "@/lib/queries";
 import { kyat, localized } from "@/lib/format";
+import { mediaUrl } from "@/lib/format";
 import { Hero, type HeroItem } from "@/components/hero";
 import { DramaCard } from "@/components/drama-card";
 import { DramaRow } from "@/components/drama-row";
@@ -44,6 +45,7 @@ export default async function HomePage() {
     genre: tg.has(d.genre) ? tg(d.genre) : d.genre,
     accent: d.accent,
     posterUrl: d.posterUrl,
+    previewUrl: mediaUrl(d.previewKey),
     episodes: d._count.episodes,
     freeEpisodes: d.freeEpisodes,
     tags: "",

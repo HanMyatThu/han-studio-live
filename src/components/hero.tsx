@@ -8,7 +8,7 @@ import { Poster } from "./poster";
 
 export type HeroItem = {
   slug: string; title: string; synopsis: string; genre: string; accent: string;
-  posterUrl: string | null; episodes: number; freeEpisodes: number; tags: string;
+  posterUrl: string | null; previewUrl: string | null; episodes: number; freeEpisodes: number; tags: string;
 };
 
 export function Hero({ items }: { items: HeroItem[] }) {
@@ -97,7 +97,18 @@ export function Hero({ items }: { items: HeroItem[] }) {
             >
               <div className="absolute -inset-6 -z-10 rounded-[40px] opacity-70 blur-3xl" style={{ background: item.accent }} />
               <div className="aspect-[9/16] overflow-hidden rounded-[28px] ring-1 ring-white/20 shadow-2xl">
-                <Poster title={item.title} accent={item.accent} posterUrl={item.posterUrl} genre={item.genre} size="lg" className="h-full w-full" />
+                <div className="relative h-full w-full">
+                  <Poster title={item.title} accent={item.accent} posterUrl={item.posterUrl} genre={item.genre} size="lg" className="h-full w-full" />
+                  {item.previewUrl && (
+                    <video key={item.previewUrl} src={item.previewUrl} autoPlay muted loop playsInline className="absolute inset-0 h-full w-full object-cover" />
+                  )}
+                  {item.previewUrl && (
+                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent p-4 pt-20">
+                      <div className="text-[10px] font-semibold uppercase tracking-[0.2em]" style={{ color: item.accent }}>{item.genre}</div>
+                      <div className="font-display text-2xl font-extrabold leading-tight">{item.title}</div>
+                    </div>
+                  )}
+                </div>
               </div>
               <div className="glass absolute -bottom-4 -left-8 flex items-center gap-2 rounded-2xl px-3 py-2 text-xs font-semibold shadow-xl">
                 <span className="relative flex size-2"><span className="absolute inline-flex size-full animate-ping rounded-full bg-rose-glow opacity-75" /><span className="relative inline-flex size-2 rounded-full bg-rose-glow" /></span>

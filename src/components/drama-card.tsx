@@ -4,6 +4,8 @@ import { Play, Flame } from "lucide-react";
 import type { DramaCardData } from "@/lib/queries";
 import { compact, localized } from "@/lib/format";
 import { Poster } from "./poster";
+import { HoverPreview } from "./hover-preview";
+import { mediaUrl } from "@/lib/format";
 
 export async function DramaCard({ drama, progress, episodeNumber }: { drama: DramaCardData; progress?: number; episodeNumber?: number }) {
   const locale = await getLocale();
@@ -14,6 +16,7 @@ export async function DramaCard({ drama, progress, episodeNumber }: { drama: Dra
     <Link href={href} className="group block w-[150px] shrink-0 snap-start sm:w-[180px]">
       <div className="relative aspect-[2/3] overflow-hidden rounded-2xl ring-1 ring-white/10 transition duration-500 group-hover:-translate-y-1 group-hover:ring-white/30 group-hover:shadow-[0_20px_50px_-15px_var(--accent)]" style={{ ["--accent" as string]: drama.accent }}>
         <Poster title={title} accent={drama.accent} posterUrl={drama.posterUrl} genre={drama.genre} className="h-full w-full transition duration-700 group-hover:scale-105" />
+        {drama.previewKey && <HoverPreview src={mediaUrl(drama.previewKey)!} />}
         <div className="absolute left-2 top-2 flex items-center gap-1 rounded-full bg-black/50 px-2 py-0.5 text-[10px] font-semibold backdrop-blur">
           <Flame className="size-3 text-rose-glow" /> {compact(drama.views)}
         </div>
