@@ -1,0 +1,134 @@
+// SQLite for local development. Switch provider to "postgresql" for production.
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String         @id @default(cuid())
+  email        String         @unique
+  name         String
+  passwordHash String
+  role         String         @default("USER") // USER | ADMIN
+  createdAt    DateTime       @default(now())
+  subscriptions Subscription[]
+  progress     WatchProgress[]
+  favorites    Favorite[]
+  payments     Payment[]
+}
+
+model Drama {
+  id           String    @id @default(cuid())
+  slug         String    @unique
+  title        String
+  titleMy      String?
+  synopsis     String
+  synopsisMy   String?
+  genre        String
+  tags         String    @default("")
+  posterUrl    String?
+  accent       String    @default("#ff3d81") // used for generated posters and glows
+  freeEpisodes Int       @default(3)
+  featured     Boolean   @default(false)
+  published    Boolean   @default(false)
+  views        Int       @default(0)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  episodes     Episode[]
+  favorites    Favorite[]
+  jobs         ProcessingJob[]
+}
+
+model Episode {
+  id           String          @id @default(cuid())
+  dramaId      String
+  drama        Drama           @relation(fields: [dramaId], references: [id], onDelete: Cascade)
+  number       Int
+  title        String?
+  videoKey     String          // storage key of the video file
+  durationSec  Float           @default(0)
+  subtitleEn   String?         // WebVTT content
+  subtitleMy   String?         // WebVTT content
+  status       String          @default("READY") // PROCESSING | REVIEW | READY
+  createdAt    DateTime        @default(now())
+  progress     WatchProgress[]
+
+  @@unique([dramaId, number])
+}
+
+model ProcessingJob {
+  id          String   @id @default(cuid())
+  dramaId     String
+  drama       Drama    @relation(fields: [dramaId], references: [id], onDelete: Cascade)
+  kind        String   // SPLIT | SINGLE
+  sourceKey   String
+  targetCount Int      @default(1)
+  startNumber Int      @default(1)
+  status      String   @default("QUEUED") // QUEUED | RUNNING | DONE | FAILED
+  step        String   @default("Queued")
+  progress    Int      @default(0)
+  error       String?
+  log         String   @default("")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Plan {
+  id        String         @id @default(cuid())
+  code      String         @unique
+  name      String
+  days      Int
+  priceMmk  Int
+  highlight Boolean        @default(false)
+  subscriptions Subscription[]
+}
+
+model Subscription {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  planId    String
+  plan      Plan     @relation(fields: [planId], references: [id])
+  startsAt  DateTime @default(now())
+  endsAt    DateTime
+  createdAt DateTime @default(now())
+}
+
+model Payment {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  planCode   String
+  amountMmk  Int
+  method     String   // KBZPAY | WAVEPAY | AYAPAY | MPU
+  provider   String   @default("mock")
+  status     String   @default("PAID") // PENDING | PAID | FAILED
+  reference  String
+  createdAt  DateTime @default(now())
+}
+
+model WatchProgress {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  episodeId  String
+  episode    Episode  @relation(fields: [episodeId], references: [id], onDelete: Cascade)
+  positionSec Float   @default(0)
+  updatedAt  DateTime @updatedAt
+
+  @@unique([userId, episodeId])
+}
+
+model Favorite {
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  dramaId   String
+  drama     Drama    @relation(fields: [dramaId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@id([userId, dramaId])
+}
