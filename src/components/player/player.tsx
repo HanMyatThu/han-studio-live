@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { AnimatePresence, motion } from "framer-motion";
-import { ChevronLeft, ChevronUp, ChevronDown, Captions, ListVideo, Play, Pause, Volume2, VolumeX, Gauge } from "lucide-react";
+import { ChevronLeft, ChevronUp, ChevronDown, Captions, ListVideo, Play, Pause, Volume2, VolumeX, Gauge, Maximize, Minimize } from "lucide-react";
 import clsx from "clsx";
 import { parseVtt, type Cue } from "@/lib/subtitles";
 import { saveProgress, countView } from "@/app/actions/viewer";
@@ -50,6 +50,40 @@ export function Player(props: {
   const [chrome, setChrome] = useState(true);
   const [autoNext, setAutoNext] = useState<number | null>(null);
   const [dir, setDir] = useState(0);
+  // Videos can be vertical (reels) or horizontal (YouTube-style). We detect it from the file.
+  const [landscape, setLandscape] = useState(false);
+  const [fullscreen, setFullscreen] = useState(false);
+  const frameRef = useRef<HTMLDivElement>(null);
+
+  // The video may load before React attaches onLoadedMetadata, so also check after mount.
+  useEffect(() => {
+    const v = videoRef.current;
+    if (v && v.readyState >= 1 && v.videoWidth) {
+      setLandscape(v.videoWidth > v.videoHeight);
+      setDur(v.duration);
+    }
+  }, [episode.id, showAd]);
+
+  useEffect(() => {
+    const onFs = () => setFullscreen(!!document.fullscreenElement);
+    document.addEventListener("fullscreenchange", onFs);
+    return () => document.removeEventListener("fullscreenchange", onFs);
+  }, []);
+
+  async function toggleFullscreen() {
+    const el = frameRef.current;
+    if (!el) return;
+    try {
+      if (document.fullscreenElement) {
+        await document.exitFullscreen();
+      } else {
+        await el.requestFullscreen();
+        // On phones, turn sideways for horizontal videos.
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        if (landscape) await (screen.orientation as any)?.lock?.("landscape").catch(() => {});
+      }
+    } catch {}
+  }
 
   // Remember subtitle language across episodes.
   useEffect(() => {
@@ -183,7 +217,17 @@ export function Player(props: {
           transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
           className="absolute inset-0 flex items-center justify-center"
         >
-          <div className="relative h-full w-full overflow-hidden bg-black sm:h-[calc(100dvh-2rem)] sm:w-auto sm:aspect-[9/16] sm:rounded-[28px] sm:ring-1 sm:ring-white/10 sm:shadow-[0_40px_120px_-20px_rgba(0,0,0,0.9)]">
+          <div
+            ref={frameRef}
+            className={clsx(
+              "relative h-full w-full overflow-hidden bg-black transition-[width,height,aspect-ratio] duration-500",
+              fullscreen
+                ? ""
+                : landscape
+                  ? "sm:aspect-video sm:h-auto sm:w-[min(94vw,calc((100dvh-2rem)*16/9))] lg:w-[min(84vw,calc((100dvh-2rem)*16/9))] sm:rounded-[28px] sm:ring-1 sm:ring-white/10 sm:shadow-[0_40px_120px_-20px_rgba(0,0,0,0.9)]"
+                  : "sm:aspect-[9/16] sm:h-[calc(100dvh-2rem)] sm:w-auto sm:rounded-[28px] sm:ring-1 sm:ring-white/10 sm:shadow-[0_40px_120px_-20px_rgba(0,0,0,0.9)]",
+            )}
+          >
             {locked ? (
               <>
                 <Poster title={drama.title} accent={drama.accent} posterUrl={drama.posterUrl} genre={drama.genre} size="lg" className="absolute inset-0 h-full w-full scale-110 blur-md" />
@@ -196,12 +240,16 @@ export function Player(props: {
                   src={`/api/stream/${episode.id}`}
                   playsInline
                   preload="auto"
-                  className="absolute inset-0 h-full w-full object-cover"
+                  className={clsx("absolute inset-0 h-full w-full", landscape ? "object-contain" : "object-cover")}
                   onClick={toggle}
                   onPlay={() => setPlaying(true)}
                   onPause={() => setPlaying(false)}
                   onTimeUpdate={(e) => setTime(e.currentTarget.currentTime)}
-                  onLoadedMetadata={(e) => setDur(e.currentTarget.duration)}
+                  onLoadedMetadata={(e) => {
+                    const v = e.currentTarget;
+                    setDur(v.duration);
+                    setLandscape(v.videoWidth > v.videoHeight);
+                  }}
                   onEnded={() => { if (loggedIn) saveProgress(episode.id, dur).catch(() => {}); if (next) setAutoNext(3); }}
                 />
                 <AnimatePresence>
@@ -267,6 +315,9 @@ export function Player(props: {
                   if (videoRef.current) videoRef.current.playbackRate = s;
                 }}>
                   <Gauge className="size-6" />
+                </RailButton>
+                <RailButton label="" onClick={toggleFullscreen}>
+                  {fullscreen ? <Minimize className="size-6" /> : <Maximize className="size-6" />}
                 </RailButton>
                 <RailButton label="" onClick={() => {
                   const v = videoRef.current; if (!v) return;

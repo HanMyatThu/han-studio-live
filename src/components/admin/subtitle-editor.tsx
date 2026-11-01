@@ -41,7 +41,7 @@ export function SubtitleEditor(props: { episodeId: string; number: number; drama
       <div className="mt-6 grid gap-6 lg:grid-cols-[320px_1fr]">
         <div className="lg:sticky lg:top-6 lg:self-start">
           <div className="relative overflow-hidden rounded-2xl bg-black ring-1 ring-white/10">
-            <video ref={video} src={`/api/stream/${props.episodeId}`} controls className="aspect-[9/16] w-full object-cover" onTimeUpdate={(e) => setTime(e.currentTarget.currentTime)} />
+            <video ref={video} src={`/api/stream/${props.episodeId}`} controls className="max-h-[70dvh] w-full bg-black object-contain" onTimeUpdate={(e) => setTime(e.currentTarget.currentTime)} />
             {current && (
               <div className="pointer-events-none absolute inset-x-3 bottom-16 text-center">
                 <span lang="my" className="rounded bg-black/60 px-2 py-0.5 text-sm leading-loose">{current.my || current.en}</span>
