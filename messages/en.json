@@ -28,7 +28,9 @@
     "vipTitle": "Unlock every episode",
     "vipBody": "No ads, no waiting. Passes from {price} Ks.",
     "vipCta": "See passes",
-    "top10": "Top 10 this week"
+    "top10": "Top 10 this week",
+    "genres": "Browse by genre",
+    "dramasCount": "{count} dramas"
   },
   "drama": {
     "play": "Play episode {number}",

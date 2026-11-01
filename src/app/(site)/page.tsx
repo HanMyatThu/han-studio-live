@@ -103,7 +103,29 @@ export default async function HomePage() {
           {newest.map((d) => <DramaCard key={d.id} drama={d} />)}
         </DramaRow>
 
-        {genresWithDramas.map((g) => (
+        <section className="mx-auto max-w-7xl px-4 md:px-8">
+          <h2 className="font-display mb-3 text-lg font-bold tracking-tight md:text-xl">{t("genres")}</h2>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-7">
+            {GENRES.map((g, i) => {
+              const sample = all.find((d) => d.genre === g);
+              const accent = sample?.accent ?? ["#ff3d81", "#ffb547", "#8b5cf6", "#22d3ee", "#34d399", "#f97316", "#facc15"][i % 7];
+              return (
+                <Link
+                  key={g}
+                  href={`/browse?genre=${g}`}
+                  className="group relative overflow-hidden rounded-2xl p-4 ring-1 ring-white/10 transition duration-300 hover:-translate-y-0.5 hover:ring-white/30"
+                  style={{ background: `linear-gradient(135deg, ${accent}40, transparent 70%)` }}
+                >
+                  <div className="absolute -bottom-6 -right-6 size-20 rounded-full opacity-40 blur-xl transition group-hover:opacity-80" style={{ background: accent }} />
+                  <div className="font-display relative text-base font-bold">{tg(g)}</div>
+                  <div className="relative mt-6 text-xs text-white/50">{t("dramasCount", { count: all.filter((d) => d.genre === g).length })}</div>
+                </Link>
+              );
+            })}
+          </div>
+        </section>
+
+        {genresWithDramas.filter((g) => all.filter((d) => d.genre === g).length >= 3).map((g) => (
           <DramaRow key={g} title={t("becauseGenre", { genre: tg(g) })} href={`/browse?genre=${g}`}>
             {all.filter((d) => d.genre === g).map((d) => <DramaCard key={d.id} drama={d} />)}
           </DramaRow>

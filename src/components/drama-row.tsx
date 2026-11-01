@@ -5,7 +5,7 @@ import { getTranslations } from "next-intl/server";
 export async function DramaRow({ title, href, children }: { title: string; href?: string; children: React.ReactNode }) {
   const t = await getTranslations("common");
   return (
-    <section className="relative">
+    <section className="relative mx-auto max-w-7xl">
       <div className="mb-3 flex items-end justify-between px-4 md:px-8">
         <h2 className="font-display text-lg font-bold tracking-tight md:text-xl">{title}</h2>
         {href && (

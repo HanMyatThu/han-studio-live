@@ -85,7 +85,7 @@ export function Hero({ items }: { items: HeroItem[] }) {
           )}
         </div>
 
-        <div className="relative w-[230px] shrink-0 sm:w-[260px] md:w-[300px]">
+        <div className="relative w-[170px] shrink-0 sm:w-[260px] md:w-[300px]">
           <AnimatePresence mode="wait">
             <motion.div
               key={item.slug}
