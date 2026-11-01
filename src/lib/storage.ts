@@ -42,3 +42,44 @@ export async function removeFile(key: string) {
 export function exists(key: string) {
   return fs.existsSync(storagePath(key));
 }
+
+/**
+ * File → web ReadableStream that is safe when the browser aborts the request
+ * (video seeking, skipping episodes). Readable.toWeb() throws
+ * "Controller is already closed" in that case.
+ */
+export function createWebStream(key: string, range?: { start: number; end: number }): ReadableStream<Uint8Array> {
+  const file = fs.createReadStream(storagePath(key), range);
+  let closed = false;
+  return new ReadableStream<Uint8Array>({
+    start(controller) {
+      file.on("data", (chunk) => {
+        if (closed) return;
+        try {
+          controller.enqueue(new Uint8Array(chunk as Buffer));
+          if ((controller.desiredSize ?? 1) <= 0) file.pause();
+        } catch {
+          closed = true;
+          file.destroy();
+        }
+      });
+      file.on("end", () => {
+        if (closed) return;
+        closed = true;
+        try { controller.close(); } catch {}
+      });
+      file.on("error", (err) => {
+        if (closed) return;
+        closed = true;
+        try { controller.error(err); } catch {}
+      });
+    },
+    pull() {
+      if (!closed) file.resume();
+    },
+    cancel() {
+      closed = true;
+      file.destroy();
+    },
+  });
+}
