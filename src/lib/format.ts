@@ -6,3 +6,6 @@ export const compact = (n: number) =>
 export const kyat = (n: number) => n.toLocaleString("en-US");
 
 export const duration = (sec: number) => `${Math.floor(sec / 60)}:${String(Math.floor(sec % 60)).padStart(2, "0")}`;
+
+/** Public URL for generated artwork stored under storage/ (posters, thumbs, previews). */
+export const mediaUrl = (key: string | null | undefined) => (key ? `/api/media/${key}` : null);

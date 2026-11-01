@@ -7,7 +7,7 @@ import path from "node:path";
 import fs from "node:fs";
 import bcrypt from "bcryptjs";
 import { PrismaClient } from "@prisma/client";
-import { generateDemoClip, concatClips } from "../src/lib/media";
+import { generateDemoClip, concatClips, extractFrame, makePreview } from "../src/lib/media";
 import { mockTranscribe, mockTranslate } from "../src/lib/ai/mock-script";
 import { toVtt } from "../src/lib/subtitles";
 
@@ -75,9 +75,18 @@ async function main() {
       await generateDemoClip(path.join(STORAGE, key), seconds, d.hue + n * 6);
       const en = mockTranscribe(seconds);
       const my = en.map((c) => ({ ...c, text: mockTranslate(c.text) }));
+      const thumbKey = `thumbs/${drama.id}/ep-${n}.jpg`;
+      fs.mkdirSync(path.join(STORAGE, "thumbs", drama.id), { recursive: true });
+      await extractFrame(path.join(STORAGE, key), seconds / 3, path.join(STORAGE, thumbKey));
       await db.episode.create({
-        data: { dramaId: drama.id, number: n, videoKey: key, durationSec: seconds, subtitleEn: toVtt(en), subtitleMy: toVtt(my), status: "READY" },
+        data: { dramaId: drama.id, number: n, videoKey: key, thumbKey, durationSec: seconds, subtitleEn: toVtt(en), subtitleMy: toVtt(my), status: "READY", likesCount: (n * 37 + i * 11) % 400 },
       });
+      if (n === 1) {
+        const previewKey = `previews/${drama.id}.mp4`;
+        fs.mkdirSync(path.join(STORAGE, "previews"), { recursive: true });
+        await makePreview(path.join(STORAGE, key), 1, 6, path.join(STORAGE, previewKey));
+        await db.drama.update({ where: { id: drama.id }, data: { previewKey } });
+      }
     }
   }
 

@@ -89,3 +89,25 @@ export function hsl(h: number, s: number, l: number) {
   const f = (n: number) => l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
   return [f(0), f(8), f(4)].map((x) => Math.round(x * 255).toString(16).padStart(2, "0")).join("");
 }
+
+/** Single JPG frame, scaled to `width` (keeps aspect ratio). */
+export async function extractFrame(file: string, atSec: number, out: string, width = 480) {
+  await run(FFMPEG(), ["-y", "-ss", atSec.toFixed(2), "-i", file, "-frames:v", "1", "-vf", `scale=${width}:-2`, "-q:v", "3", out]);
+}
+
+/** 2:3 poster cropped from the centre of a frame. */
+export async function extractPoster(file: string, atSec: number, out: string) {
+  await run(FFMPEG(), [
+    "-y", "-ss", atSec.toFixed(2), "-i", file, "-frames:v", "1",
+    "-vf", "crop='min(iw,ih*2/3)':'min(ih,iw*3/2)',scale=600:900", "-q:v", "3", out,
+  ]);
+}
+
+/** Short, muted, small preview clip for autoplay on the home page. */
+export async function makePreview(file: string, start: number, seconds: number, out: string) {
+  await run(FFMPEG(), [
+    "-y", "-ss", start.toFixed(2), "-t", String(seconds), "-i", file, "-an",
+    "-vf", "scale='if(gt(iw,ih),640,-2)':'if(gt(iw,ih),-2,640)'",
+    "-c:v", "libx264", "-preset", "veryfast", "-crf", "30", "-pix_fmt", "yuv420p", "-movflags", "+faststart", out,
+  ]);
+}

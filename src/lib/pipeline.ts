@@ -8,6 +8,7 @@ import { transcribe } from "./ai/transcribe";
 import { translateToBurmese } from "./ai/translate";
 import { pickSplitPoints } from "./ai/split";
 import { sliceCues, toVtt } from "./subtitles";
+import { generateDramaArtwork, generateEpisodeThumb } from "./artwork";
 
 /**
  * In-process job queue. Good enough for one server.
@@ -77,13 +78,19 @@ export async function runJob(jobId: string) {
         status: "REVIEW",
       };
       const existing = await db.episode.findUnique({ where: { dramaId_number: { dramaId: job.dramaId, number } } });
+      let episodeId: string;
       if (existing) {
         await removeFile(existing.videoKey).catch(() => {});
-        await db.episode.update({ where: { id: existing.id }, data });
+        if (existing.thumbKey) await removeFile(existing.thumbKey).catch(() => {});
+        episodeId = (await db.episode.update({ where: { id: existing.id }, data: { ...data, thumbKey: null } })).id;
       } else {
-        await db.episode.create({ data: { ...data, dramaId: job.dramaId, number } });
+        episodeId = (await db.episode.create({ data: { ...data, dramaId: job.dramaId, number } })).id;
       }
+      await generateEpisodeThumb(episodeId).catch(() => {});
     }
+
+    await update(jobId, "Creating poster and preview clip", 97);
+    await generateDramaArtwork(job.dramaId).catch(() => {});
 
     await update(jobId, `Done: ${ranges.length} episode(s) ready for review`, 100, { status: "DONE" });
     await removeFile(job.sourceKey).catch(() => {});

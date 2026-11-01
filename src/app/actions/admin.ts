@@ -88,3 +88,25 @@ export async function saveSubtitles(episodeId: string, lang: "en" | "my", vtt: s
   revalidatePath(`/admin/episodes/${episodeId}`);
   return { ok: true };
 }
+
+export async function regenerateArtwork(dramaId: string) {
+  await guard();
+  const { generateDramaArtwork, generateEpisodeThumb } = await import("@/lib/artwork");
+  const eps = await db.episode.findMany({ where: { dramaId }, select: { id: true } });
+  for (const e of eps) await generateEpisodeThumb(e.id).catch(() => {});
+  await generateDramaArtwork(dramaId, { force: true });
+  revalidatePath(`/admin/dramas/${dramaId}`);
+  revalidatePath("/");
+}
+
+/** Create thumbnails, posters and previews for anything that doesn't have them yet. */
+export async function generateMissingArtwork() {
+  await guard();
+  const { generateDramaArtwork, generateEpisodeThumb } = await import("@/lib/artwork");
+  const eps = await db.episode.findMany({ where: { thumbKey: null }, select: { id: true } });
+  for (const e of eps) await generateEpisodeThumb(e.id).catch(() => {});
+  const dramas = await db.drama.findMany({ where: { OR: [{ previewKey: null }, { posterUrl: null }] }, select: { id: true } });
+  for (const d of dramas) await generateDramaArtwork(d.id).catch(() => {});
+  revalidatePath("/", "layout");
+  return { episodes: eps.length, dramas: dramas.length };
+}

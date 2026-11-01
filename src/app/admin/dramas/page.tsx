@@ -3,6 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { db } from "@/lib/db";
 import { compact } from "@/lib/format";
 import { Poster } from "@/components/poster";
+import { MissingArtworkButton } from "@/components/admin/missing-artwork-button";
 
 export default async function AdminDramas() {
   const t = await getTranslations("admin");
@@ -14,7 +15,10 @@ export default async function AdminDramas() {
     <div className="mx-auto max-w-6xl">
       <div className="flex items-center justify-between">
         <h1 className="font-display text-3xl font-extrabold tracking-tight">{t("dramas")}</h1>
-        <Link href="/admin/dramas/new" className="rounded-full bg-white px-4 py-2 text-sm font-bold text-ink-950">+ {t("newDrama")}</Link>
+        <div className="flex items-center gap-2">
+          <MissingArtworkButton />
+          <Link href="/admin/dramas/new" className="rounded-full bg-white px-4 py-2 text-sm font-bold text-ink-950">+ {t("newDrama")}</Link>
+        </div>
       </div>
       <div className="mt-6 grid gap-3">
         {dramas.map((d) => (

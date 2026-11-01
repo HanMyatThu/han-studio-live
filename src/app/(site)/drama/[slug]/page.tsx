@@ -7,7 +7,7 @@ import clsx from "clsx";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
 import { episodeAccess, getActiveSubscription } from "@/lib/access";
-import { compact, duration, localized } from "@/lib/format";
+import { compact, duration, localized, mediaUrl } from "@/lib/format";
 import { Poster } from "@/components/poster";
 import { FavoriteButton } from "@/components/favorite-button";
 
@@ -24,7 +24,7 @@ export default async function DramaPage({ params }: Params) {
   const [t, tg, locale, user] = await Promise.all([getTranslations("drama"), getTranslations("genres"), getLocale(), getCurrentUser()]);
   const drama = await db.drama.findUnique({
     where: { slug },
-    include: { episodes: { where: { status: "READY" }, orderBy: { number: "asc" }, select: { id: true, number: true, durationSec: true } } },
+    include: { episodes: { where: { status: "READY" }, orderBy: { number: "asc" }, select: { id: true, number: true, durationSec: true, thumbKey: true } } },
   });
   if (!drama || (!drama.published && user?.role !== "ADMIN")) notFound();
 
@@ -105,12 +105,17 @@ export default async function DramaPage({ params }: Params) {
                     key={ep.id}
                     href={`/watch/${drama.slug}/${ep.number}`}
                     className={clsx(
-                      "group relative flex aspect-[4/5] flex-col justify-between overflow-hidden rounded-2xl p-3 ring-1 transition duration-300 hover:-translate-y-0.5",
+                      "group relative isolate flex aspect-[4/5] flex-col justify-between overflow-hidden rounded-2xl p-3 ring-1 transition duration-300 hover:-translate-y-0.5",
                       current ? "ring-2" : "ring-white/10 hover:ring-white/30",
                       access === "locked" ? "bg-white/[0.03]" : "bg-white/[0.06]",
                     )}
                     style={current ? { ["--tw-ring-color" as string]: drama.accent } : undefined}
                   >
+                    {ep.thumbKey && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={mediaUrl(ep.thumbKey)!} alt="" loading="lazy" className={clsx("absolute inset-0 -z-20 h-full w-full object-cover transition duration-500 group-hover:scale-105", access === "locked" ? "opacity-25 blur-[2px]" : "opacity-60")} />
+                    )}
+                    <div className="absolute inset-0 -z-10 bg-gradient-to-t from-black/80 via-black/10 to-black/40" />
                     <div className="absolute inset-0 -z-10 opacity-0 transition group-hover:opacity-100" style={{ background: `radial-gradient(100% 80% at 50% 0%, ${drama.accent}33, transparent)` }} />
                     <div className="flex items-start justify-between">
                       {access === "free" && <span className="rounded-md bg-emerald-400/15 px-1.5 py-0.5 text-[10px] font-bold uppercase text-emerald-300">{t("free")}</span>}
