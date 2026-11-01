@@ -12,24 +12,41 @@ export function JobsPanel({ dramaId }: { dramaId: string }) {
   const t = useTranslations("admin");
   const router = useRouter();
   const [jobs, setJobs] = useState<Job[]>([]);
-  const active = useRef(false);
+  const seen = useRef<Map<string, string> | null>(null);
 
   useEffect(() => {
-    let timer: ReturnType<typeof setTimeout>;
+    let timer: ReturnType<typeof setTimeout> | undefined;
     let stopped = false;
+    let inFlight = false;
+    let fast = false;
+
     const poll = async () => {
-      const res = await fetch(`/api/admin/jobs?dramaId=${dramaId}`).catch(() => null);
-      if (res?.ok) {
-        const data: { jobs: Job[] } = await res.json();
-        setJobs(data.jobs);
-        const running = data.jobs.some((j) => j.status === "QUEUED" || j.status === "RUNNING");
-        if (active.current && !running) router.refresh(); // a job just finished: show new episodes
-        active.current = running;
+      if (inFlight || stopped) return;
+      inFlight = true;
+      clearTimeout(timer);
+      try {
+        const res = await fetch(`/api/admin/jobs?dramaId=${dramaId}`).catch(() => null);
+        if (res?.ok) {
+          const data: { jobs: Job[] } = await res.json();
+          setJobs(data.jobs);
+          const prev = seen.current;
+          // Refresh the page when a job we saw (or a brand-new one) has finished, so new episodes appear.
+          const finished = prev !== null && data.jobs.some((j) => {
+            const before = prev.get(j.id);
+            const doneNow = j.status === "DONE" || j.status === "FAILED";
+            return doneNow && before !== j.status;
+          });
+          if (finished) router.refresh();
+          seen.current = new Map(data.jobs.map((j) => [j.id, j.status]));
+          fast = data.jobs.some((j) => j.status === "QUEUED" || j.status === "RUNNING");
+        }
+      } finally {
+        inFlight = false;
+        if (!stopped) timer = setTimeout(poll, fast ? 1500 : 6000);
       }
-      if (!stopped) timer = setTimeout(poll, active.current ? 1500 : 6000);
     };
     poll();
-    const kick = () => { clearTimeout(timer); active.current = true; poll(); };
+    const kick = () => { fast = true; poll(); };
     window.addEventListener("zat:job-started", kick);
     return () => { stopped = true; clearTimeout(timer); window.removeEventListener("zat:job-started", kick); };
   }, [dramaId, router]);
