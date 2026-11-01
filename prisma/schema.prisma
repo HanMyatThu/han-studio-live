@@ -14,7 +14,10 @@ model User {
   name         String
   passwordHash String
   role         String         @default("USER") // USER | ADMIN
+  banned       Boolean        @default(false)
   createdAt    DateTime       @default(now())
+  likes        EpisodeLike[]
+  comments     Comment[]
   subscriptions Subscription[]
   progress     WatchProgress[]
   favorites    Favorite[]
@@ -31,6 +34,7 @@ model Drama {
   genre        String
   tags         String    @default("")
   posterUrl    String?
+  previewKey   String?   // short muted clip that autoplays on the home page
   accent       String    @default("#ff3d81") // used for generated posters and glows
   freeEpisodes Int       @default(3)
   featured     Boolean   @default(false)
@@ -53,9 +57,13 @@ model Episode {
   durationSec  Float           @default(0)
   subtitleEn   String?         // WebVTT content
   subtitleMy   String?         // WebVTT content
+  thumbKey     String?         // auto thumbnail (jpg) taken from the video
+  likesCount   Int             @default(0)
   status       String          @default("READY") // PROCESSING | REVIEW | READY
   createdAt    DateTime        @default(now())
   progress     WatchProgress[]
+  likes        EpisodeLike[]
+  comments     Comment[]
 
   @@unique([dramaId, number])
 }
@@ -131,4 +139,26 @@ model Favorite {
   createdAt DateTime @default(now())
 
   @@id([userId, dramaId])
+}
+
+model EpisodeLike {
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  episodeId String
+  episode   Episode  @relation(fields: [episodeId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@id([userId, episodeId])
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  episodeId String
+  episode   Episode  @relation(fields: [episodeId], references: [id], onDelete: Cascade)
+  body      String
+  createdAt DateTime @default(now())
+
+  @@index([episodeId, createdAt])
 }
