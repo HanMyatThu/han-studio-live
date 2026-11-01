@@ -11,6 +11,10 @@ A mobile-first streaming site for short vertical dramas. The admin uploads Engli
 - Pre-roll video ad and banner ads for free users only
 - VIP passes (7 / 30 / 90 days) paid with KBZPay, WavePay, AYA Pay or MPU (**mocked** for now)
 - Account page with pass status, payment history and My List
+- "For You" feed: swipe through episode 1 of every drama, TikTok-style
+- Likes and comments on every episode
+- Preview clips that autoplay on the home page
+- Installable as an app (PWA) with an offline page
 - Whole site switches between English and Burmese
 
 **Admin (`/admin`)**
@@ -18,6 +22,9 @@ A mobile-first streaming site for short vertical dramas. The admin uploads Engli
 - Upload a long video and choose how many episodes; or upload single episodes
 - Processing pipeline: extract audio → transcribe English → translate to Burmese → detect scene changes → cut at natural pauses → encode episodes
 - Review episodes before they go live, preview them, and edit subtitles line by line
+- Automatic episode thumbnails, poster (when you haven't uploaded one) and preview clip
+- User management: search, make admin, ban, delete
+- Comment moderation
 - Dashboard with revenue, active passes, users and views
 
 ## Tech
@@ -41,6 +48,16 @@ Open http://localhost:3000
 - Viewer: `viewer@zat.local` / `viewer1234`
 
 `npm run setup` also creates `demo-long-video.mp4` in the project folder. Upload it in the admin dashboard with "Long video → split into episodes" to try the auto-split.
+
+## After pulling new changes
+
+If the database schema changed, run:
+
+```bash
+npx prisma db push
+```
+
+Then in `/admin/dramas`, click **Generate missing artwork** once to create thumbnails, posters and preview clips for videos uploaded before this feature existed.
 
 ## Burmese translation of the site
 
