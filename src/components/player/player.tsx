@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { AnimatePresence, motion } from "framer-motion";
-import { ChevronLeft, ChevronUp, ChevronDown, Captions, ListVideo, Play, Pause, Volume2, VolumeX, Gauge, Maximize, Minimize } from "lucide-react";
+import { ChevronLeft, ChevronUp, ChevronDown, Captions, ListVideo, MessageCircle, Play, Pause, Volume2, VolumeX, Gauge, Maximize, Minimize } from "lucide-react";
 import clsx from "clsx";
 import { parseVtt, type Cue } from "@/lib/subtitles";
 import { saveProgress, countView } from "@/app/actions/viewer";
@@ -12,6 +12,8 @@ import { Poster } from "../poster";
 import { PrerollAd } from "./preroll-ad";
 import { Paywall } from "./paywall";
 import { EpisodeSheet } from "./episode-sheet";
+import { LikeButton } from "./like-button";
+import { CommentsSheet } from "./comments-sheet";
 
 export type PlayerEpisode = { id: string; number: number; durationSec: number; access: "free" | "subscriber" | "locked" };
 type Drama = { id: string; slug: string; title: string; accent: string; posterUrl: string | null; genre: string };
@@ -27,6 +29,7 @@ export function Player(props: {
   loggedIn: boolean;
   startAt: number;
   defaultSubtitle: SubLang;
+  social: { likes: number; liked: boolean; comments: number };
 }) {
   const { drama, episodes, currentNumber, isVip, loggedIn, startAt } = props;
   const t = useTranslations("player");
@@ -46,6 +49,8 @@ export function Player(props: {
   const [subLang, setSubLang] = useState<SubLang>(props.defaultSubtitle);
   const [cues, setCues] = useState<Record<string, Cue[]>>({});
   const [sheet, setSheet] = useState(false);
+  const [commentsOpen, setCommentsOpen] = useState(false);
+  const [commentCount, setCommentCount] = useState(props.social.comments);
   const [speed, setSpeed] = useState(1);
   const [chrome, setChrome] = useState(true);
   const [autoNext, setAutoNext] = useState<number | null>(null);
@@ -159,13 +164,15 @@ export function Player(props: {
   // Keyboard, wheel and swipe navigation.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      if ((e.target as HTMLElement)?.tagName === "INPUT") return;
       if (e.key === "ArrowDown") go(next, 1);
       if (e.key === "ArrowUp") go(prev, -1);
+      if ((e.target as HTMLElement)?.tagName === "INPUT") return;
       if (e.key === " ") { e.preventDefault(); toggle(); }
     };
     let wheelLock = false;
     const onWheel = (e: WheelEvent) => {
-      if (wheelLock || sheet || Math.abs(e.deltaY) < 40) return;
+      if (wheelLock || sheet || commentsOpen || Math.abs(e.deltaY) < 40) return;
       wheelLock = true;
       setTimeout(() => (wheelLock = false), 900);
       if (e.deltaY > 0) go(next, 1); else go(prev, -1);
@@ -173,7 +180,7 @@ export function Player(props: {
     let startY: number | null = null;
     const onTouchStart = (e: TouchEvent) => (startY = e.touches[0].clientY);
     const onTouchEnd = (e: TouchEvent) => {
-      if (startY === null || sheet) return;
+      if (startY === null || sheet || commentsOpen) return;
       const dy = e.changedTouches[0].clientY - startY;
       if (dy < -70) go(next, 1);
       if (dy > 70) go(prev, -1);
@@ -190,7 +197,7 @@ export function Player(props: {
       window.removeEventListener("touchend", onTouchEnd);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [go, next, prev, sheet]);
+  }, [go, next, prev, sheet, commentsOpen]);
 
   function toggle() {
     const v = videoRef.current;
@@ -300,7 +307,9 @@ export function Player(props: {
 
             {/* Right rail */}
             {!locked && (
-              <div className={clsx("absolute bottom-32 right-3 flex flex-col items-center gap-4 transition-opacity duration-500", chrome || !playing ? "opacity-100" : "opacity-0")}>
+              <div className={clsx("absolute bottom-28 right-3 flex flex-col items-center gap-2.5 transition-opacity duration-500", chrome || !playing ? "opacity-100" : "opacity-0")}>
+                <LikeButton episodeId={episode.id} initialLiked={props.social.liked} initialCount={props.social.likes} />
+                <RailButton label={String(commentCount)} onClick={() => setCommentsOpen(true)}><MessageCircle className="size-6" /></RailButton>
                 <RailButton label={t("allEpisodes")} onClick={() => setSheet(true)}><ListVideo className="size-6" /></RailButton>
                 <RailButton
                   label={subLang === "off" ? t("subtitlesOff") : subLang === "my" ? "မြန်မာ" : "EN"}
@@ -371,6 +380,14 @@ export function Player(props: {
               )}
             </AnimatePresence>
 
+            <CommentsSheet
+              open={commentsOpen}
+              onClose={() => setCommentsOpen(false)}
+              episodeId={episode.id}
+              loggedIn={loggedIn}
+              onCountChange={(d) => setCommentCount((c) => Math.max(0, c + d))}
+            />
+
             <EpisodeSheet
               open={sheet}
               onClose={() => setSheet(false)}
@@ -395,7 +412,7 @@ export function Player(props: {
 function RailButton({ children, label, onClick, active }: { children: React.ReactNode; label: string; onClick: () => void; active?: boolean }) {
   return (
     <button onClick={onClick} className="flex flex-col items-center gap-1 text-[11px] font-semibold text-white drop-shadow">
-      <span className={clsx("grid size-12 place-items-center rounded-full backdrop-blur-md transition active:scale-90", active ? "bg-white/25 ring-1 ring-white/40" : "bg-black/30")}>{children}</span>
+      <span className={clsx("grid size-11 place-items-center rounded-full backdrop-blur-md transition active:scale-90", active ? "bg-white/25 ring-1 ring-white/40" : "bg-black/30")}>{children}</span>
       {label}
     </button>
   );

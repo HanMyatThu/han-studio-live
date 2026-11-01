@@ -33,6 +33,12 @@ export default async function WatchPage({ params }: Params) {
     ? await db.watchProgress.findUnique({ where: { userId_episodeId: { userId: user.id, episodeId: current.id } } })
     : null;
 
+  const [likes, myLike, comments] = await Promise.all([
+    db.episode.findUnique({ where: { id: current.id }, select: { likesCount: true } }),
+    user ? db.episodeLike.findUnique({ where: { userId_episodeId: { userId: user.id, episodeId: current.id } } }) : null,
+    db.comment.count({ where: { episodeId: current.id } }),
+  ]);
+
   const episodes: PlayerEpisode[] = drama.episodes.map((e) => ({
     id: e.id,
     number: e.number,
@@ -50,6 +56,7 @@ export default async function WatchPage({ params }: Params) {
       loggedIn={!!user}
       startAt={progress && progress.positionSec < current.durationSec - 3 ? progress.positionSec : 0}
       defaultSubtitle="my"
+      social={{ likes: likes?.likesCount ?? 0, liked: !!myLike, comments }}
     />
   );
 }

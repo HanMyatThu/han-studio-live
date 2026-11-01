@@ -12,7 +12,8 @@
     "admin": "",
     "login": "",
     "logout": "",
-    "language": ""
+    "language": "",
+    "feed": ""
   },
   "home": {
     "watchNow": "",
@@ -63,7 +64,20 @@
     "loginCta": "",
     "back": "",
     "swipeHint": "",
-    "speed": ""
+    "speed": "",
+    "like": "",
+    "comments": "",
+    "commentsTitle": "",
+    "addComment": "",
+    "send": "",
+    "noComments": "",
+    "loginToComment": "",
+    "commentSlow": "",
+    "commentBanned": "",
+    "delete": "",
+    "share": "",
+    "watchDrama": "",
+    "fullscreen": ""
   },
   "browse": {
     "title": "",
@@ -104,7 +118,8 @@
     "invalid": "",
     "exists": "",
     "weakPassword": "",
-    "demo": ""
+    "demo": "",
+    "banned": ""
   },
   "account": {
     "title": "",
@@ -178,7 +193,23 @@
       "english": "",
       "burmese": "",
       "back": ""
-    }
+    },
+    "comments": "",
+    "searchUsers": "",
+    "role": "",
+    "makeAdmin": "",
+    "makeUser": "",
+    "ban": "",
+    "unban": "",
+    "banned": "",
+    "joined": "",
+    "pass": "",
+    "none": "",
+    "deleteUser": "",
+    "confirmDeleteUser": "",
+    "you": "",
+    "noComments": "",
+    "episodeShort": ""
   },
   "genres": {
     "Romance": "",
@@ -195,5 +226,21 @@
     "seeAll": "",
     "cancel": "",
     "close": ""
+  },
+  "feed": {
+    "title": "",
+    "empty": "",
+    "episodeOne": "",
+    "tapForSound": ""
+  },
+  "pwa": {
+    "installTitle": "",
+    "installBody": "",
+    "install": "",
+    "later": "",
+    "iosHint": "",
+    "offlineTitle": "",
+    "offlineBody": "",
+    "retry": ""
   }
 }
