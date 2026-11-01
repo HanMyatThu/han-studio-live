@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { LayoutDashboard, Clapperboard, Plus, ExternalLink } from "lucide-react";
+import { LayoutDashboard, Clapperboard, Plus, ExternalLink, Users, MessageSquare } from "lucide-react";
 import { requireAdmin } from "@/lib/auth";
 import { Logo } from "@/components/logo";
 import { LocaleSwitcher } from "@/components/locale-switcher";
@@ -22,6 +22,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         <nav className="no-scrollbar flex gap-1 overflow-x-auto px-3 pb-3 md:flex-col md:pb-0">
           <AdminNavLink href="/admin" exact icon={<LayoutDashboard className="size-4" />}>{t("dashboard")}</AdminNavLink>
           <AdminNavLink href="/admin/dramas" icon={<Clapperboard className="size-4" />}>{t("dramas")}</AdminNavLink>
+          <AdminNavLink href="/admin/users" icon={<Users className="size-4" />}>{t("users")}</AdminNavLink>
+          <AdminNavLink href="/admin/comments" icon={<MessageSquare className="size-4" />}>{t("comments")}</AdminNavLink>
           <Link href="/admin/dramas/new" className="bg-gradient-brand mt-2 flex shrink-0 items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-bold shadow-[0_8px_30px_-10px_#ff3d81]">
             <Plus className="size-4" /> {t("newDrama")}
           </Link>

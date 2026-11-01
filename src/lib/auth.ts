@@ -7,7 +7,7 @@ import { db } from "./db";
 const COOKIE = "zat_session";
 const secret = () => new TextEncoder().encode(process.env.AUTH_SECRET || "dev-secret-change-me");
 
-export type SessionUser = { id: string; email: string; name: string; role: string };
+export type SessionUser = { id: string; email: string; name: string; role: string; banned?: boolean };
 
 export async function hashPassword(password: string) {
   return bcrypt.hash(password, 10);
@@ -47,7 +47,7 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
     if (!payload.sub) return null;
     const user = await db.user.findUnique({
       where: { id: payload.sub },
-      select: { id: true, email: true, name: true, role: true },
+      select: { id: true, email: true, name: true, role: true, banned: true },
     });
     return user;
   } catch {
@@ -57,6 +57,6 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
 
 export async function requireAdmin() {
   const user = await getCurrentUser();
-  if (!user || user.role !== "ADMIN") return null;
+  if (!user || user.role !== "ADMIN" || user.banned) return null;
   return user;
 }

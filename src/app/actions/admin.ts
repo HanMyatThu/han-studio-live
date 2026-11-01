@@ -110,3 +110,27 @@ export async function generateMissingArtwork() {
   revalidatePath("/", "layout");
   return { episodes: eps.length, dramas: dramas.length };
 }
+
+export async function setUserRole(userId: string, role: "USER" | "ADMIN") {
+  const admin = await guard();
+  if (userId === admin.id) throw new Error("You can't change your own role");
+  await db.user.update({ where: { id: userId }, data: { role } });
+  revalidatePath("/admin/users");
+}
+
+export async function setUserBanned(userId: string, banned: boolean) {
+  const admin = await guard();
+  if (userId === admin.id) throw new Error("You can't ban yourself");
+  await db.user.update({ where: { id: userId }, data: { banned } });
+  revalidatePath("/admin/users");
+}
+
+export async function deleteUser(userId: string) {
+  const admin = await guard();
+  if (userId === admin.id) throw new Error("You can't delete yourself");
+  // Keep like counts accurate before the user's likes are removed.
+  const likes = await db.episodeLike.findMany({ where: { userId }, select: { episodeId: true } });
+  for (const l of likes) await db.episode.update({ where: { id: l.episodeId }, data: { likesCount: { decrement: 1 } } });
+  await db.user.delete({ where: { id: userId } });
+  revalidatePath("/admin/users");
+}

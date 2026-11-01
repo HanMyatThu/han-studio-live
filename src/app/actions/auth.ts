@@ -4,7 +4,7 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { createSession, destroySession, hashPassword, verifyPassword } from "@/lib/auth";
 
-export type AuthState = { error?: "invalid" | "exists" | "weakPassword" } | undefined;
+export type AuthState = { error?: "invalid" | "exists" | "weakPassword" | "banned" } | undefined;
 
 const safeNext = (n: FormDataEntryValue | null) => {
   const s = typeof n === "string" ? n : "";
@@ -16,6 +16,7 @@ export async function login(_: AuthState, form: FormData): Promise<AuthState> {
   const password = String(form.get("password") || "");
   const user = await db.user.findUnique({ where: { email } });
   if (!user || !(await verifyPassword(password, user.passwordHash))) return { error: "invalid" };
+  if (user.banned) return { error: "banned" };
   await createSession(user);
   redirect(safeNext(form.get("next")));
 }
