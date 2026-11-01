@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { Home, Compass, Crown, User } from "lucide-react";
+import { Home, Compass, Crown, User, Clapperboard } from "lucide-react";
 import clsx from "clsx";
 
 export function BottomNav() {
@@ -10,6 +10,7 @@ export function BottomNav() {
   const path = usePathname();
   const items = [
     { href: "/", icon: Home, label: t("home") },
+    { href: "/feed", icon: Clapperboard, label: t("feed") },
     { href: "/browse", icon: Compass, label: t("browse") },
     { href: "/subscribe", icon: Crown, label: "VIP" },
     { href: "/account", icon: User, label: t("account") },

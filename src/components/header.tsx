@@ -17,6 +17,7 @@ export async function Header() {
         <Link href="/" className="shrink-0"><Logo /></Link>
         <nav className="hidden items-center gap-1 text-sm font-medium text-white/70 md:flex">
           <Link href="/" className="rounded-full px-3 py-1.5 hover:bg-white/5 hover:text-white">{t("home")}</Link>
+          <Link href="/feed" className="rounded-full px-3 py-1.5 hover:bg-white/5 hover:text-white">{t("feed")}</Link>
           <Link href="/browse" className="rounded-full px-3 py-1.5 hover:bg-white/5 hover:text-white">{t("browse")}</Link>
           {user && <Link href="/account#list" className="rounded-full px-3 py-1.5 hover:bg-white/5 hover:text-white">{t("myList")}</Link>}
         </nav>
