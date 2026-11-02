@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
-import { removeFile } from "@/lib/storage";
+import { removeDir, removeFile } from "@/lib/storage";
 
 async function guard() {
   const admin = await requireAdmin();
@@ -58,13 +58,32 @@ export async function setPublished(id: string, published: boolean) {
 
 export async function deleteDrama(id: string) {
   await guard();
+  const drama = await db.drama.findUnique({
+    where: { id },
+    select: { posterUrl: true, previewKey: true, episodes: { select: { streamId: true } }, jobs: { select: { sourceKey: true } } },
+  });
+  if (!drama) redirect("/admin/dramas");
+
+  // 1. Videos on Bunny Stream (keep going if one fails, e.g. already deleted there).
   const { deleteVideo, bunnyEnabled } = await import("@/lib/bunny");
-  const eps = await db.episode.findMany({ where: { dramaId: id }, select: { videoKey: true, thumbKey: true, streamId: true } });
-  await Promise.all(eps.map((e) => removeFile(e.videoKey).catch(() => {})));
-  await Promise.all(eps.map((e) => removeFile(e.thumbKey).catch(() => {})));
-  if (bunnyEnabled()) await Promise.all(eps.filter((e) => e.streamId).map((e) => deleteVideo(e.streamId!)));
+  if (bunnyEnabled()) {
+    await Promise.all(drama.episodes.filter((e) => e.streamId).map((e) => deleteVideo(e.streamId!).catch(() => {})));
+  }
+
+  // 2. Files on this server: episodes, thumbnails, preview clip, poster, leftover uploads.
+  const posterKey = drama.posterUrl?.replace(/^\/api\/(media\/)?/, "");
+  await Promise.all([
+    removeDir(`dramas/${id}`),
+    removeDir(`thumbs/${id}`),
+    removeFile(drama.previewKey),
+    posterKey?.startsWith("posters/") ? removeFile(posterKey) : null,
+    ...drama.jobs.map((j) => removeFile(j.sourceKey)),
+  ].map((p) => p?.catch(() => {})));
+
+  // 3. Database rows (episodes, likes, comments, progress, favorites cascade).
   await db.drama.delete({ where: { id } });
   revalidatePath("/admin/dramas");
+  revalidatePath("/");
   redirect("/admin/dramas");
 }
 
@@ -83,7 +102,7 @@ export async function deleteEpisode(id: string) {
   await removeFile(ep.videoKey).catch(() => {});
   await removeFile(ep.thumbKey).catch(() => {});
   const { deleteVideo, bunnyEnabled } = await import("@/lib/bunny");
-  if (ep.streamId && bunnyEnabled()) await deleteVideo(ep.streamId);
+  if (ep.streamId && bunnyEnabled()) await deleteVideo(ep.streamId).catch(() => {});
   revalidatePath(`/admin/dramas/${ep.dramaId}`);
 }
 

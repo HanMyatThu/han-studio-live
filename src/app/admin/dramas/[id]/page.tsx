@@ -31,7 +31,7 @@ export default async function EditDrama({ params }: { params: Promise<{ id: stri
             <Link href={`/drama/${drama.slug}`} className="flex items-center gap-1 hover:text-white"><ExternalLink className="size-3.5" />/drama/{drama.slug}</Link>
           </div>
         </div>
-        <DramaActions id={drama.id} published={drama.published} localEpisodes={drama.episodes.filter((e) => e.streamProvider !== "bunny").length} bunnyReady={bunnyEnabled()} />
+        <DramaActions id={drama.id} title={drama.title} episodes={drama.episodes.length} published={drama.published} localEpisodes={drama.episodes.filter((e) => e.streamProvider !== "bunny").length} bunnyReady={bunnyEnabled()} />
       </div>
 
       <section>

@@ -40,6 +40,12 @@ export async function removeFile(key: string | null | undefined) {
   await fsp.rm(storagePath(key), { force: true });
 }
 
+/** Remove a whole folder, e.g. every file of one drama. */
+export async function removeDir(key: string) {
+  if (!key || key.includes("..")) return;
+  await fsp.rm(storagePath(key), { recursive: true, force: true });
+}
+
 export function exists(key: string | null | undefined) {
   if (!key) return false;
   return fs.existsSync(storagePath(key));

@@ -1,10 +1,11 @@
 "use client";
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
-import { Eye, EyeOff, Trash2, ImagePlay, CloudUpload } from "lucide-react";
-import { deleteDrama, moveDramaToBunny, regenerateArtwork, setPublished } from "@/app/actions/admin";
+import { DeleteDramaButton } from "./delete-drama-button";
+import { Eye, EyeOff, ImagePlay, CloudUpload } from "lucide-react";
+import { moveDramaToBunny, regenerateArtwork, setPublished } from "@/app/actions/admin";
 
-export function DramaActions({ id, published, localEpisodes = 0, bunnyReady = false }: { id: string; published: boolean; localEpisodes?: number; bunnyReady?: boolean }) {
+export function DramaActions({ id, title, episodes, published, localEpisodes = 0, bunnyReady = false }: { id: string; title: string; episodes: number; published: boolean; localEpisodes?: number; bunnyReady?: boolean }) {
   const t = useTranslations("admin");
   const [pending, start] = useTransition();
   const [note, setNote] = useState<string | null>(null);
@@ -40,14 +41,7 @@ export function DramaActions({ id, published, localEpisodes = 0, bunnyReady = fa
       >
         {published ? <><EyeOff className="size-4" />{t("unpublish")}</> : <><Eye className="size-4" />{t("publish")}</>}
       </button>
-      <button
-        disabled={pending}
-        onClick={() => { if (confirm("Delete this drama and all its episodes?")) start(() => deleteDrama(id)); }}
-        className="grid size-10 place-items-center rounded-xl bg-rose-500/10 text-rose-300 hover:bg-rose-500/20"
-        aria-label={t("delete")}
-      >
-        <Trash2 className="size-4" />
-      </button>
+      <DeleteDramaButton id={id} title={title} episodes={episodes} label />
       {note && <p className="w-full text-xs text-white/55">{note}</p>}
     </div>
   );

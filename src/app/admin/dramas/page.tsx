@@ -3,6 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { db } from "@/lib/db";
 import { compact } from "@/lib/format";
 import { Poster } from "@/components/poster";
+import { DeleteDramaButton } from "@/components/admin/delete-drama-button";
 import { MissingArtworkButton } from "@/components/admin/missing-artwork-button";
 
 export default async function AdminDramas() {
@@ -22,7 +23,8 @@ export default async function AdminDramas() {
       </div>
       <div className="mt-6 grid gap-3">
         {dramas.map((d) => (
-          <Link key={d.id} href={`/admin/dramas/${d.id}`} className="glass group flex items-center gap-4 rounded-2xl p-3 transition hover:bg-white/[0.07]">
+          <div key={d.id} className="glass group flex items-center gap-2 rounded-2xl p-3 pr-3 transition hover:bg-white/[0.07]">
+          <Link href={`/admin/dramas/${d.id}`} className="flex min-w-0 flex-1 items-center gap-4">
             <div className="aspect-[2/3] w-14 shrink-0 overflow-hidden rounded-lg">
               <Poster title={d.title} accent={d.accent} posterUrl={d.posterUrl} size="sm" className="h-full w-full" />
             </div>
@@ -35,6 +37,8 @@ export default async function AdminDramas() {
               {d.published ? t("published") : t("draft")}
             </span>
           </Link>
+          <DeleteDramaButton id={d.id} title={d.title} episodes={d._count.episodes} />
+          </div>
         ))}
       </div>
     </div>
