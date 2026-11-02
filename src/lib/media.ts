@@ -17,13 +17,17 @@ function run(bin: string, args: string[]): Promise<{ stdout: string; stderr: str
   });
 }
 
+// FFMPEG_PATH / FFPROBE_PATH let the server use the system ffmpeg (needed on ARM servers,
+// where ffprobe-static has no binary). Locally the bundled binaries are used.
 const FFMPEG = () => {
-  if (!ffmpegPath) throw new Error("ffmpeg binary not found (ffmpeg-static)");
-  return ffmpegPath as unknown as string;
+  const bin = process.env.FFMPEG_PATH || (ffmpegPath as unknown as string | null);
+  if (!bin) throw new Error("ffmpeg binary not found (ffmpeg-static)");
+  return bin;
 };
+const FFPROBE = () => process.env.FFPROBE_PATH || ffprobe.path;
 
 export async function probeDuration(file: string): Promise<number> {
-  const { stdout } = await run(ffprobe.path, [
+  const { stdout } = await run(FFPROBE(), [
     "-v", "error", "-show_entries", "format=duration", "-of", "default=nw=1:nk=1", file,
   ]);
   return parseFloat(stdout.trim()) || 0;

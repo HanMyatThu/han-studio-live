@@ -14,8 +14,9 @@ RUN npm run build
 
 FROM node:22-bookworm-slim
 WORKDIR /app
-RUN apt-get update && apt-get install -y --no-install-recommends openssl ca-certificates && rm -rf /var/lib/apt/lists/*
-ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 PORT=3000
+# System ffmpeg works on both Intel/AMD and ARM servers.
+RUN apt-get update && apt-get install -y --no-install-recommends openssl ca-certificates ffmpeg && rm -rf /var/lib/apt/lists/*
+ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 PORT=3000 FFMPEG_PATH=/usr/bin/ffmpeg FFPROBE_PATH=/usr/bin/ffprobe
 COPY --from=build /app ./
 RUN mkdir -p storage && chown -R node:node /app/storage /app/.next
 EXPOSE 3000
