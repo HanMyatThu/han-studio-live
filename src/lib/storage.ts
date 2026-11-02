@@ -18,6 +18,11 @@ export function storagePath(key: string) {
   return full;
 }
 
+/** Where an unfinished chunked upload is collected. */
+export function partKey(dramaId: string, uploadId: string) {
+  return `uploads/${dramaId}/${uploadId}.part`;
+}
+
 export async function ensureDir(key: string) {
   await fsp.mkdir(path.dirname(storagePath(key)), { recursive: true });
 }

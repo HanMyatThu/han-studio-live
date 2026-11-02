@@ -181,7 +181,10 @@
       "drop": "Drop a video here or click to choose",
       "start": "Upload and process",
       "uploading": "Uploading {percent}%",
-      "hint": "The system transcribes the English audio, translates subtitles into Burmese, and finds natural cut points between scenes."
+      "hint": "The system transcribes the English audio, translates subtitles into Burmese, and finds natural cut points between scenes.",
+      "reconnecting": "Reconnecting… {percent}%",
+      "keepOpen": "Keep this page open until the upload finishes. If the connection drops, it continues by itself.",
+      "connectionLost": "Connection lost for too long. Check your internet and try again."
     },
     "episodes": {
       "title": "Episodes",

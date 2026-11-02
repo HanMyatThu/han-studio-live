@@ -181,7 +181,10 @@
       "drop": "",
       "start": "",
       "uploading": "",
-      "hint": ""
+      "hint": "",
+      "reconnecting": "",
+      "keepOpen": "",
+      "connectionLost": ""
     },
     "episodes": {
       "title": "",

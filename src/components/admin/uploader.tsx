@@ -1,10 +1,28 @@
 "use client";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { motion } from "framer-motion";
 import { UploadCloud, Scissors, Film, X, Wand2 } from "lucide-react";
 import clsx from "clsx";
+
+const CHUNK = 8 * 1024 * 1024; // 8 MB
+const MAX_RETRIES = 12; // about 5 minutes of reconnecting before giving up
+
+/** PUT one chunk with progress (fetch can't report upload progress). */
+function sendChunk(url: string, chunk: Blob, onProgress: (loaded: number) => void) {
+  return new Promise<{ status: number; body: string }>((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open("PUT", url);
+    xhr.timeout = 120_000;
+    xhr.setRequestHeader("Content-Type", "application/octet-stream");
+    xhr.upload.onprogress = (e) => onProgress(e.loaded);
+    xhr.onload = () => resolve({ status: xhr.status, body: xhr.responseText });
+    xhr.onerror = () => reject(new Error("network"));
+    xhr.ontimeout = () => reject(new Error("timeout"));
+    xhr.send(chunk);
+  });
+}
 
 export function Uploader({ dramaId, nextNumber }: { dramaId: string; nextNumber: number }) {
   const t = useTranslations("admin.upload");
@@ -17,26 +35,60 @@ export function Uploader({ dramaId, nextNumber }: { dramaId: string; nextNumber:
   const [percent, setPercent] = useState<number | null>(null);
   const [drag, setDrag] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [retrying, setRetrying] = useState(false);
 
-  function upload() {
+  // Warn before leaving the page while a file is still uploading.
+  useEffect(() => {
+    if (percent === null) return;
+    const warn = (e: BeforeUnloadEvent) => { e.preventDefault(); e.returnValue = ""; };
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [percent]);
+
+  async function upload() {
     if (!file) return;
     setError(null);
-    const qs = new URLSearchParams({ dramaId, mode, count: String(count), number: String(number), name: file.name });
-    // XHR (not fetch) so we can show upload progress for large files.
-    const xhr = new XMLHttpRequest();
-    xhr.open("POST", `/api/admin/upload?${qs}`);
-    xhr.setRequestHeader("Content-Type", file.type || "application/octet-stream");
-    xhr.upload.onprogress = (e) => e.lengthComputable && setPercent(Math.round((e.loaded / e.total) * 100));
-    xhr.onload = () => {
+    setRetrying(false);
+    setPercent(0);
+    const uploadId = crypto.randomUUID();
+    const base = new URLSearchParams({ dramaId, uploadId });
+    try {
+      // Send the file in small pieces. A dropped connection only repeats one piece.
+      let offset = 0;
+      let failures = 0;
+      while (offset < file.size) {
+        const chunk = file.slice(offset, offset + CHUNK);
+        const res = await sendChunk(`/api/admin/upload/chunk?${base}&offset=${offset}`, chunk, (loaded) =>
+          setPercent(Math.min(99, Math.floor(((offset + loaded) / file.size) * 100))),
+        ).catch(() => null);
+
+        if (res && (res.status === 200 || res.status === 409)) {
+          offset = (JSON.parse(res.body) as { size: number }).size; // 409: server tells us where to resume
+          failures = 0;
+          setRetrying(false);
+          continue;
+        }
+        if (res && res.status < 500 && res.status !== 0) throw new Error(res.body || `Upload failed (${res.status})`);
+        if (++failures > MAX_RETRIES) throw new Error(t("connectionLost"));
+        setRetrying(true);
+        await new Promise((r) => setTimeout(r, Math.min(30000, 1000 * 2 ** failures)));
+        // Ask the server how much arrived, in case the last piece made it after all.
+        const status = await fetch(`/api/admin/upload/chunk?${base}`).then((r) => r.json()).catch(() => null);
+        if (status && typeof status.size === "number") offset = status.size;
+      }
+
+      const qs = new URLSearchParams({ dramaId, uploadId, size: String(file.size), mode, count: String(count), number: String(number), name: file.name });
+      const done = await fetch(`/api/admin/upload?${qs}`, { method: "POST" });
+      if (!done.ok) throw new Error((await done.json().catch(() => null))?.error ?? `Upload failed (${done.status})`);
+      setFile(null);
+      window.dispatchEvent(new Event("zat:job-started"));
+      router.refresh();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    } finally {
       setPercent(null);
-      if (xhr.status >= 200 && xhr.status < 300) {
-        setFile(null);
-        window.dispatchEvent(new Event("zat:job-started"));
-        router.refresh();
-      } else setError(xhr.responseText || `Upload failed (${xhr.status})`);
-    };
-    xhr.onerror = () => { setPercent(null); setError("Network error"); };
-    xhr.send(file);
+      setRetrying(false);
+    }
   }
 
   return (
@@ -101,8 +153,9 @@ export function Uploader({ dramaId, nextNumber }: { dramaId: string; nextNumber:
         className="bg-gradient-brand relative mt-4 w-full overflow-hidden rounded-xl py-3 font-bold disabled:opacity-50"
       >
         {percent !== null && <span className="absolute inset-y-0 left-0 bg-white/25 transition-all" style={{ width: `${percent}%` }} />}
-        <span className="relative">{percent !== null ? t("uploading", { percent }) : t("start")}</span>
+        <span className="relative">{percent !== null ? (retrying ? t("reconnecting", { percent }) : t("uploading", { percent })) : t("start")}</span>
       </button>
+      {percent !== null && <p className="mt-3 text-xs text-white/45">{t("keepOpen")}</p>}
       {error && <p className="mt-3 text-sm text-rose-300">{error}</p>}
     </div>
   );
