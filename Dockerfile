@@ -17,7 +17,8 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends openssl ca-certificates && rm -rf /var/lib/apt/lists/*
 ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 PORT=3000
 COPY --from=build /app ./
-RUN mkdir -p storage
+RUN mkdir -p storage && chown -R node:node /app/storage /app/.next
 EXPOSE 3000
-# Sync the database schema, create plans + admin, then start.
-CMD ["sh", "-c", "npx prisma db push --skip-generate && npm run db:init && npm start"]
+# Fix storage ownership, then drop root and run as the unprivileged "node" user:
+# sync the database schema, create plans + admin, start.
+CMD ["sh", "-c", "chown -R node:node /app/storage && exec setpriv --reuid=node --regid=node --init-groups env HOME=/home/node sh -c 'npx prisma db push --skip-generate && npm run db:init && npm start'"]
