@@ -4,8 +4,7 @@ import ffprobe from "ffprobe-static";
 
 function run(bin: string, args: string[]): Promise<{ stdout: string; stderr: string }> {
   return new Promise((resolve, reject) => {
-    // Lower priority on Linux so the website stays fast while a video is processing.
-    const child = process.platform === "linux" ? spawn("nice", ["-n", "10", bin, ...args]) : spawn(bin, args, { windowsHide: true });
+    const child = spawn(bin, args, { windowsHide: true });
     let stdout = "";
     let stderr = "";
     child.stdout.on("data", (d) => (stdout += d));
@@ -33,9 +32,8 @@ export async function probeDuration(file: string): Promise<number> {
 /** Timestamps (seconds) where the picture changes a lot, i.e. likely scene cuts. */
 export async function detectScenes(file: string, threshold = 0.35): Promise<number[]> {
   const { stderr } = await run(FFMPEG(), [
-    "-hide_banner", "-threads", THREADS, "-i", file,
-    // Look at small frames: same scene changes, a fraction of the work.
-    "-filter:v", `scale=192:-2,select='gt(scene,${threshold})',showinfo`,
+    "-hide_banner", "-i", file,
+    "-filter:v", `select='gt(scene,${threshold})',showinfo`,
     "-an", "-f", "null", "-",
   ]);
   const times: number[] = [];
@@ -48,27 +46,20 @@ export async function extractAudio(file: string, out: string) {
   await run(FFMPEG(), ["-y", "-i", file, "-vn", "-ac", "1", "-ar", "16000", "-b:a", "48k", out]);
 }
 
-// Small servers: cap threads (default 2) and resolution (longest side 1280 = 720p).
-// Bunny Stream re-encodes every upload, so a fast preset here costs no viewer quality.
-const THREADS = process.env.FFMPEG_THREADS || "2";
-const ENCODE = [
-  "-threads", THREADS,
-  "-vf", "scale='if(gt(iw,ih),min(1280,iw),-2)':'if(gt(iw,ih),-2,min(1280,ih))'",
-  "-c:v", "libx264", "-preset", process.env.FFMPEG_PRESET || "superfast", "-crf", "21", "-pix_fmt", "yuv420p",
-  "-c:a", "aac", "-b:a", "128k", "-movflags", "+faststart",
-];
-
 /** Frame-accurate cut, re-encoded for smooth web playback. */
 export async function cutSegment(file: string, start: number, end: number, out: string) {
   await run(FFMPEG(), [
-    "-y", "-ss", start.toFixed(3), "-to", end.toFixed(3), "-i", file, ...ENCODE, out,
+    "-y", "-ss", start.toFixed(3), "-to", end.toFixed(3), "-i", file,
+    "-c:v", "libx264", "-preset", "veryfast", "-crf", "23",
+    "-c:a", "aac", "-b:a", "128k", "-movflags", "+faststart", out,
   ]);
 }
 
 /** Copy into web-friendly MP4 (used for single-episode uploads). */
 export async function normalize(file: string, out: string) {
   await run(FFMPEG(), [
-    "-y", "-i", file, ...ENCODE, out,
+    "-y", "-i", file, "-c:v", "libx264", "-preset", "veryfast", "-crf", "23",
+    "-c:a", "aac", "-b:a", "128k", "-movflags", "+faststart", out,
   ]);
 }
 
