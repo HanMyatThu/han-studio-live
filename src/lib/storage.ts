@@ -35,11 +35,13 @@ export function createReadStream(key: string, range?: { start: number; end: numb
   return fs.createReadStream(storagePath(key), range);
 }
 
-export async function removeFile(key: string) {
+export async function removeFile(key: string | null | undefined) {
+  if (!key) return;
   await fsp.rm(storagePath(key), { force: true });
 }
 
-export function exists(key: string) {
+export function exists(key: string | null | undefined) {
+  if (!key) return false;
   return fs.existsSync(storagePath(key));
 }
 

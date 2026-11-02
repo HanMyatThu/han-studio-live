@@ -53,7 +53,9 @@ model Episode {
   drama        Drama           @relation(fields: [dramaId], references: [id], onDelete: Cascade)
   number       Int
   title        String?
-  videoKey     String          // storage key of the video file
+  videoKey     String          // local storage key of the video file ("" once moved to Bunny)
+  streamProvider String        @default("local") // local | bunny
+  streamId     String?         // Bunny Stream video GUID
   durationSec  Float           @default(0)
   subtitleEn   String?         // WebVTT content
   subtitleMy   String?         // WebVTT content
