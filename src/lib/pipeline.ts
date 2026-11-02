@@ -9,6 +9,7 @@ import { translateToBurmese } from "./ai/translate";
 import { pickSplitPoints } from "./ai/split";
 import { sliceCues, toVtt } from "./subtitles";
 import { generateDramaArtwork, generateEpisodeThumb } from "./artwork";
+import { bunnyEnabled, uploadAndWait, deleteVideo } from "./bunny";
 
 /**
  * In-process job queue. Good enough for one server.
@@ -32,6 +33,8 @@ export async function runJob(jobId: string) {
   const job = await db.processingJob.findUnique({ where: { id: jobId } });
   if (!job || job.status !== "QUEUED") return;
   await db.processingJob.update({ where: { id: jobId }, data: { status: "RUNNING" } });
+
+  if (job.kind === "BUNNY") return runBunnyMigration(jobId, job.dramaId);
 
   const source = storagePath(job.sourceKey);
   const workDir = path.join(path.dirname(source), `work-${job.id}`);
@@ -61,6 +64,7 @@ export async function runJob(jobId: string) {
       await update(jobId, `Cutting at ${cuts.map((c) => c.toFixed(1) + "s").join(", ")}`, 60);
     }
 
+    const episodeIds: string[] = [];
     for (let i = 0; i < ranges.length; i++) {
       const [from, to] = ranges[i];
       const number = job.startNumber + i;
@@ -82,15 +86,19 @@ export async function runJob(jobId: string) {
       if (existing) {
         await removeFile(existing.videoKey).catch(() => {});
         if (existing.thumbKey) await removeFile(existing.thumbKey).catch(() => {});
-        episodeId = (await db.episode.update({ where: { id: existing.id }, data: { ...data, thumbKey: null } })).id;
+        if (existing.streamId && bunnyEnabled()) await deleteVideo(existing.streamId);
+        episodeId = (await db.episode.update({ where: { id: existing.id }, data: { ...data, thumbKey: null, streamProvider: "local", streamId: null } })).id;
       } else {
         episodeId = (await db.episode.create({ data: { ...data, dramaId: job.dramaId, number } })).id;
       }
       await generateEpisodeThumb(episodeId).catch(() => {});
+      episodeIds.push(episodeId);
     }
 
-    await update(jobId, "Creating poster and preview clip", 97);
+    await update(jobId, "Creating poster and preview clip", 90);
     await generateDramaArtwork(job.dramaId).catch(() => {});
+
+    if (bunnyEnabled()) await sendToBunny(jobId, episodeIds, 90, 99);
 
     await update(jobId, `Done: ${ranges.length} episode(s) ready for review`, 100, { status: "DONE" });
     await removeFile(job.sourceKey).catch(() => {});
@@ -98,5 +106,29 @@ export async function runJob(jobId: string) {
     await update(jobId, "Failed", 100, { status: "FAILED", error: err instanceof Error ? err.message : String(err) });
   } finally {
     await fsp.rm(workDir, { recursive: true, force: true }).catch(() => {});
+  }
+}
+
+/** Upload episodes to Bunny Stream, wait for encoding, then delete the local MP4s. */
+async function sendToBunny(jobId: string, episodeIds: string[], from: number, to: number) {
+  for (let i = 0; i < episodeIds.length; i++) {
+    const ep = await db.episode.findUnique({ where: { id: episodeIds[i] }, include: { drama: { select: { title: true } } } });
+    if (!ep || !ep.videoKey) continue;
+    const base = from + Math.round(((to - from) * i) / episodeIds.length);
+    await update(jobId, `Sending EP ${ep.number} to Bunny Stream (${i + 1}/${episodeIds.length})`, base);
+    const guid = await uploadAndWait(`${ep.drama.title} · EP ${ep.number}`, storagePath(ep.videoKey));
+    await db.episode.update({ where: { id: ep.id }, data: { streamProvider: "bunny", streamId: guid, videoKey: "" } });
+    await removeFile(ep.videoKey).catch(() => {});
+  }
+}
+
+async function runBunnyMigration(jobId: string, dramaId: string) {
+  try {
+    if (!bunnyEnabled()) throw new Error("Bunny Stream is not configured in .env");
+    const eps = await db.episode.findMany({ where: { dramaId, streamProvider: "local", NOT: { videoKey: "" } }, orderBy: { number: "asc" }, select: { id: true } });
+    await sendToBunny(jobId, eps.map((e) => e.id), 0, 99);
+    await update(jobId, `Done: ${eps.length} episode(s) now stream from Bunny`, 100, { status: "DONE" });
+  } catch (err) {
+    await update(jobId, "Failed", 100, { status: "FAILED", error: err instanceof Error ? err.message : String(err) });
   }
 }

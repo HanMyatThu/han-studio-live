@@ -58,8 +58,11 @@ export async function setPublished(id: string, published: boolean) {
 
 export async function deleteDrama(id: string) {
   await guard();
-  const eps = await db.episode.findMany({ where: { dramaId: id }, select: { videoKey: true } });
+  const { deleteVideo, bunnyEnabled } = await import("@/lib/bunny");
+  const eps = await db.episode.findMany({ where: { dramaId: id }, select: { videoKey: true, thumbKey: true, streamId: true } });
   await Promise.all(eps.map((e) => removeFile(e.videoKey).catch(() => {})));
+  await Promise.all(eps.map((e) => removeFile(e.thumbKey).catch(() => {})));
+  if (bunnyEnabled()) await Promise.all(eps.filter((e) => e.streamId).map((e) => deleteVideo(e.streamId!)));
   await db.drama.delete({ where: { id } });
   revalidatePath("/admin/dramas");
   redirect("/admin/dramas");
@@ -78,6 +81,9 @@ export async function deleteEpisode(id: string) {
   await guard();
   const ep = await db.episode.delete({ where: { id } });
   await removeFile(ep.videoKey).catch(() => {});
+  await removeFile(ep.thumbKey).catch(() => {});
+  const { deleteVideo, bunnyEnabled } = await import("@/lib/bunny");
+  if (ep.streamId && bunnyEnabled()) await deleteVideo(ep.streamId);
   revalidatePath(`/admin/dramas/${ep.dramaId}`);
 }
 
@@ -133,4 +139,15 @@ export async function deleteUser(userId: string) {
   for (const l of likes) await db.episode.update({ where: { id: l.episodeId }, data: { likesCount: { decrement: 1 } } });
   await db.user.delete({ where: { id: userId } });
   revalidatePath("/admin/users");
+}
+
+/** Move a drama's existing local episodes to Bunny Stream (runs in the background). */
+export async function moveDramaToBunny(dramaId: string) {
+  await guard();
+  const { bunnyEnabled } = await import("@/lib/bunny");
+  if (!bunnyEnabled()) return { error: "Bunny Stream is not set up yet. Add the BUNNY_* keys to .env and set STORAGE_DRIVER=\"bunny\"." };
+  const { enqueueJob } = await import("@/lib/pipeline");
+  const job = await db.processingJob.create({ data: { dramaId, kind: "BUNNY", sourceKey: "" } });
+  enqueueJob(job.id);
+  return { ok: true };
 }
