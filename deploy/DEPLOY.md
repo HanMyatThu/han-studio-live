@@ -1,5 +1,19 @@
 # Deploying Zat to a server (Hetzner)
 
+## Quick way: one command
+
+SSH into the server as root and run:
+
+```bash
+bash <(curl -fsSL https://raw.githubusercontent.com/HanMyatThu/han-studio-live/main/deploy/install.sh)
+```
+
+It asks for your domain, admin login and keys, then sets up swap, the database, the app and HTTPS.
+If another project's Caddy already uses ports 80/443, Zat shares it automatically.
+Run the same command again to update after a new push.
+
+The manual steps below do the same thing by hand.
+
 One server runs everything with Docker: the app, PostgreSQL and Caddy (automatic HTTPS).
 Videos are served by Bunny Stream, so the server mostly handles pages, uploads and processing.
 
