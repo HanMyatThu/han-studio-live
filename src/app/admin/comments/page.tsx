@@ -7,7 +7,7 @@ export default async function AdminComments({ searchParams }: { searchParams: Pr
   const { q } = await searchParams;
   const t = await getTranslations("admin");
   const comments = await db.comment.findMany({
-    where: q ? { body: { contains: q } } : {},
+    where: q ? { body: { contains: q, mode: "insensitive" } } : {},
     orderBy: { createdAt: "desc" },
     take: 100,
     include: { user: { select: { name: true, email: true } }, episode: { select: { number: true, drama: { select: { title: true, slug: true } } } } },

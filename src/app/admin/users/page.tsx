@@ -10,7 +10,7 @@ export default async function AdminUsers({ searchParams }: { searchParams: Promi
   const now = new Date();
   const users = await db.user.findMany({
     where: {
-      ...(q ? { OR: [{ name: { contains: q } }, { email: { contains: q } }] } : {}),
+      ...(q ? { OR: [{ name: { contains: q, mode: "insensitive" } }, { email: { contains: q, mode: "insensitive" } }] } : {}),
       ...(filter === "admins" ? { role: "ADMIN" } : filter === "banned" ? { banned: true } : filter === "vip" ? { subscriptions: { some: { endsAt: { gt: now } } } } : {}),
     },
     orderBy: { createdAt: "desc" },

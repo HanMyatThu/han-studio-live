@@ -15,7 +15,7 @@ export function getPublishedDramas(opts: { genre?: string; q?: string; take?: nu
       published: true,
       ...(opts.genre ? { genre: opts.genre } : {}),
       ...(opts.q
-        ? { OR: [{ title: { contains: opts.q } }, { titleMy: { contains: opts.q } }, { tags: { contains: opts.q } }] }
+        ? { OR: [{ title: { contains: opts.q, mode: "insensitive" } }, { titleMy: { contains: opts.q, mode: "insensitive" } }, { tags: { contains: opts.q, mode: "insensitive" } }] }
         : {}),
     },
     select: dramaCardSelect,

@@ -1,10 +1,10 @@
-// SQLite for local development. Switch provider to "postgresql" for production.
+// PostgreSQL everywhere: docker compose locally, the same image on the server.
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
