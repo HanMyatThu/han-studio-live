@@ -170,3 +170,16 @@ export async function moveDramaToBunny(dramaId: string) {
   enqueueJob(job.id);
   return { ok: true };
 }
+
+/** Run a failed job again, reusing the uploaded video still on the server. */
+export async function retryJob(jobId: string) {
+  await guard();
+  const job = await db.processingJob.findUnique({ where: { id: jobId } });
+  if (!job || job.status !== "FAILED") return { error: "This job can't be retried." };
+  const { exists } = await import("@/lib/storage");
+  if (job.kind !== "BUNNY" && !exists(job.sourceKey)) return { error: "The uploaded video is gone. Please upload it again." };
+  await db.processingJob.update({ where: { id: jobId }, data: { status: "QUEUED", progress: 0, error: null, step: "Queued again" } });
+  const { enqueueJob } = await import("@/lib/pipeline");
+  enqueueJob(jobId);
+  return { ok: true };
+}

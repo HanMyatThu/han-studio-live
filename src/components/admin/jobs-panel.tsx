@@ -1,9 +1,10 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { motion } from "framer-motion";
-import { Cpu } from "lucide-react";
+import { Cpu, RotateCcw } from "lucide-react";
+import { retryJob } from "@/app/actions/admin";
 import { JobStatusBadge } from "./job-badge";
 
 type Job = { id: string; kind: string; status: string; step: string; progress: number; error: string | null; targetCount: number; startNumber: number; createdAt: string };
@@ -74,11 +75,36 @@ export function JobsPanel({ dramaId }: { dramaId: string }) {
                   transition={{ duration: 0.6 }}
                 />
               </div>
-              <div className="mt-1.5 truncate text-xs text-white/45">{j.error ?? j.step}</div>
+              <div className="mt-1.5 flex items-center gap-2">
+                <div className={j.status === "FAILED" ? "min-w-0 flex-1 text-xs text-rose-300/80" : "min-w-0 flex-1 truncate text-xs text-white/45"}>{j.error ?? j.step}</div>
+                {j.status === "FAILED" && <RetryButton jobId={j.id} />}
+              </div>
             </li>
           ))}
         </ul>
       )}
     </div>
+  );
+}
+
+function RetryButton({ jobId }: { jobId: string }) {
+  const [pending, start] = useTransition();
+  const [msg, setMsg] = useState<string | null>(null);
+  return msg ? (
+    <span className="text-xs text-rose-300">{msg}</span>
+  ) : (
+    <button
+      disabled={pending}
+      onClick={() =>
+        start(async () => {
+          const res = await retryJob(jobId);
+          if ("error" in res && res.error) setMsg(res.error);
+          else window.dispatchEvent(new Event("zat:job-started"));
+        })
+      }
+      className="flex shrink-0 items-center gap-1.5 rounded-lg bg-white/10 px-2.5 py-1 text-xs font-semibold hover:bg-white/15 disabled:opacity-50"
+    >
+      <RotateCcw className="size-3.5" /> Retry
+    </button>
   );
 }
