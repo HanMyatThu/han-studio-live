@@ -11,7 +11,8 @@
     "db:seed": "tsx prisma/seed.ts",
     "setup": "prisma db push && tsx prisma/seed.ts",
     "postinstall": "prisma generate",
-    "db:init": "tsx prisma/init.ts"
+    "db:init": "tsx prisma/init.ts",
+    "admin:reset": "tsx prisma/reset-admin.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",
