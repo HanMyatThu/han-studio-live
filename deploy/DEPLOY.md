@@ -83,3 +83,25 @@ docker compose logs -f app                # app logs
 docker compose restart app                # restart after editing .env
 docker compose exec db psql -U zat zat    # database shell
 ```
+
+## Sharing a server with another project
+
+If another project's Caddy already uses ports 80/443, don't start Zat's Caddy:
+
+```bash
+cp deploy/shared-proxy.yml docker-compose.override.yml
+echo 'PROXY_NETWORK="han-studio_default"' >> .env    # the other project's network (docker network ls)
+docker compose --profile prod up -d --build db app
+```
+
+Then add a block for the Zat domain to the other project's Caddyfile and reload it:
+
+```
+zat-domain.com, www.zat-domain.com {
+	encode zstd gzip
+	request_body {
+		max_size 3GB
+	}
+	reverse_proxy zat-app-1:3000
+}
+```

@@ -1,0 +1,14 @@
+# Use when another project's Caddy/nginx (in Docker) already owns ports 80/443.
+# Joins Zat's app to that project's network so its proxy can reach "zat-app-1:3000".
+#   cp deploy/shared-proxy.yml docker-compose.override.yml
+#   set PROXY_NETWORK in .env (see: docker network ls)
+#   docker compose --profile prod up -d --build db app
+services:
+  app:
+    container_name: zat-app-1
+    networks: [default, proxy]
+
+networks:
+  proxy:
+    external: true
+    name: ${PROXY_NETWORK:-han-studio_default}
