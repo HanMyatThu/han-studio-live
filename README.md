@@ -29,15 +29,16 @@ A mobile-first streaming site for short vertical dramas. The admin uploads Engli
 
 ## Tech
 
-Next.js 15 (App Router) · TypeScript · Tailwind CSS 4 · next-intl · Prisma (SQLite locally) · ffmpeg (bundled via `ffmpeg-static`) · framer-motion
+Next.js 15 (App Router) · TypeScript · Tailwind CSS 4 · next-intl · Prisma + PostgreSQL · hls.js · Bunny Stream · ffmpeg (bundled via `ffmpeg-static`) · framer-motion
 
 ## Getting started
 
-Requires Node.js 20+.
+Requires Node.js 20+ and Docker Desktop (for the PostgreSQL database).
 
 ```bash
 npm install
 cp .env.example .env      # on Windows: copy .env.example .env
+docker compose up -d db   # starts PostgreSQL on localhost:5432
 npm run setup             # creates the database and demo data (takes a few minutes the first time)
 npm run dev
 ```
@@ -50,6 +51,8 @@ Open http://localhost:3000
 `npm run setup` also creates `demo-long-video.mp4` in the project folder. Upload it in the admin dashboard with "Long video → split into episodes" to try the auto-split.
 
 ## After pulling new changes
+
+**Moving from SQLite to PostgreSQL (November 2026):** the database is now PostgreSQL. Old demo data in `prisma/dev.db` is not copied over. Change `DATABASE_URL` in your `.env` to `postgresql://zat:zat@localhost:5432/zat`, then run `docker compose up -d db` and `npm run setup`.
 
 If the database schema changed, run:
 
@@ -70,15 +73,40 @@ UI text lives in `messages/en.json`. `messages/my.json` has the same keys with e
 | Speech-to-text | Mock English dialogue | Set `OPENAI_API_KEY` (Whisper) |
 | Translation | Mock Burmese lines | `TRANSLATION_PROVIDER=openai` or `gemini` with its key |
 | Payments | Instant fake payment | Implement Dinger / 2C2P in `src/lib/payments.ts` |
-| Video storage | Local `./storage` folder | Bunny Stream / S3 in `src/lib/storage.ts` |
+| Video storage | Local `./storage` folder | Bunny Stream: see below |
 | Banner ads | Placeholder | Set `NEXT_PUBLIC_ADSENSE_CLIENT` |
 | Video ads | Simulated pre-roll | Google IMA SDK in `src/components/player/preroll-ad.tsx` |
+
+## Streaming with Bunny Stream
+
+With `STORAGE_DRIVER="local"` episodes stream as MP4 from this server. With Bunny, every finished episode is uploaded to Bunny Stream, encoded into several qualities, and played as HLS from Bunny's CDN. The local copy is deleted.
+
+1. Bunny dashboard → **Stream** → your library.
+   - **Encoding**: enable 360p, 480p and 720p (data saver uses 360p/480p).
+   - **Security**: turn on **Token Authentication**.
+2. Put these in `.env`:
+   ```
+   STORAGE_DRIVER="bunny"
+   BUNNY_STREAM_LIBRARY_ID="…"        # API tab: Video Library ID
+   BUNNY_STREAM_API_KEY="…"           # API tab: API Key
+   BUNNY_STREAM_CDN_URL="https://vz-….b-cdn.net"   # API tab: CDN Hostname
+   BUNNY_TOKEN_KEY="…"                # Security tab: token authentication key
+   ```
+3. Restart the app. New uploads go to Bunny automatically (episodes show a **Bunny** badge).
+4. Existing episodes: open a drama in the admin and click **Move to Bunny**.
+
+Viewers get a quality button in the player: **Auto**, **Saver** (max 480p, about a third of the data) and **HD**. Saver is picked automatically on 2G/3G or when the phone's data saver is on.
+
+## Deploying to a server
+
+See [deploy/DEPLOY.md](deploy/DEPLOY.md) (Docker, PostgreSQL, automatic HTTPS, backups).
 
 ## Project structure
 
 ```
 messages/            en.json, my.json (UI translations)
-prisma/              schema.prisma, seed.ts
+prisma/              schema.prisma, seed.ts (demo data), init.ts (server: plans + admin)
+deploy/              Caddyfile, backup script, deploy guide
 src/app/(site)/      viewer pages: home, browse, drama, subscribe, account
 src/app/watch/       full-screen player
 src/app/admin/       admin dashboard
@@ -89,7 +117,6 @@ src/lib/ai/          transcription, translation, split-point logic
 
 ## Going to production
 
-- Change `prisma/schema.prisma` provider to `postgresql` and set `DATABASE_URL`
-- Set a long random `AUTH_SECRET`
-- Move video storage to Bunny Stream (or S3 + CDN) and serve signed URLs
+- Set a long random `AUTH_SECRET` and a strong `ADMIN_PASSWORD`
+- Use Bunny Stream for video (above)
 - Run the processing pipeline in a separate worker if uploads get heavy

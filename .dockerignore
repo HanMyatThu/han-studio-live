@@ -1,0 +1,10 @@
+node_modules
+.next
+.git
+storage
+prisma/*.db*
+.env
+.env.*
+!.env.example
+demo-long-video.mp4
+*.log
