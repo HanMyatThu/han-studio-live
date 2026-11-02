@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import { useQuality, useStream, type PlaybackSource } from "../video/use-stream";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { motion, AnimatePresence } from "framer-motion";
@@ -11,7 +12,7 @@ import { CommentsSheet } from "../player/comments-sheet";
 
 export type FeedItem = {
   dramaId: string; slug: string; title: string; synopsis: string; genre: string; accent: string;
-  episodes: number; episodeId: string; episodeNumber: number; src: string | null; poster: string | null;
+  episodes: number; episodeId: string; episodeNumber: number; source: PlaybackSource | null; fullEpisode: boolean; poster: string | null;
   likes: number; liked: boolean; comments: number;
 };
 
@@ -75,17 +76,19 @@ function FeedCard(props: { item: FeedItem; index: number; active: boolean; prelo
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [comments, setComments] = useState(item.comments);
   const [copied, setCopied] = useState(false);
+  const [quality] = useQuality();
+  const { ready } = useStream(video, item.source, { enabled: props.preload, quality });
 
   useEffect(() => {
     const v = video.current;
-    if (!v) return;
+    if (!v || !ready) return;
     if (props.active) {
       v.play().then(() => setPaused(false)).catch(() => setPaused(true));
     } else {
       v.pause();
       v.currentTime = 0;
     }
-  }, [props.active]);
+  }, [props.active, ready]);
 
   useEffect(() => {
     if (video.current) video.current.muted = props.muted;
@@ -103,10 +106,9 @@ function FeedCard(props: { item: FeedItem; index: number; active: boolean; prelo
     <section data-index={props.index} className="relative h-dvh w-full snap-start snap-always overflow-hidden">
       <div className="absolute inset-0" style={{ background: `radial-gradient(70% 50% at 50% 40%, ${item.accent}44, #000 75%)` }} />
       <div className="absolute inset-0 mx-auto max-w-[min(100vw,calc(100dvh*9/16))] sm:max-w-none">
-        {item.src && (
+        {item.source && (
           <video
             ref={video}
-            src={props.preload ? item.src : undefined}
             poster={item.poster ?? undefined}
             muted={props.muted}
             loop
@@ -164,7 +166,7 @@ function FeedCard(props: { item: FeedItem; index: number; active: boolean; prelo
           <h2 className="font-display mt-1 text-2xl font-extrabold leading-tight">{item.title}</h2>
           <p className="mt-1.5 line-clamp-2 text-sm text-white/70">{item.synopsis}</p>
           <Link
-            href={`/watch/${item.slug}/${item.src?.startsWith("/api/stream") ? Math.min(item.episodeNumber + 1, item.episodes) : item.episodeNumber}`}
+            href={`/watch/${item.slug}/${item.fullEpisode ? Math.min(item.episodeNumber + 1, item.episodes) : item.episodeNumber}`}
             className="bg-gradient-brand mt-4 inline-flex items-center gap-1.5 rounded-full px-5 py-2.5 text-sm font-bold shadow-[0_10px_30px_-10px_#ff3d81]"
           >
             {tp("watchDrama")} · {item.episodes} EP <ChevronRight className="size-4" />

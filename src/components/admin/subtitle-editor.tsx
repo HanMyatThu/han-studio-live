@@ -6,12 +6,14 @@ import { ChevronLeft, Check, Loader2 } from "lucide-react";
 import clsx from "clsx";
 import { saveSubtitles } from "@/app/actions/admin";
 import { toVtt, type Cue } from "@/lib/subtitles";
+import { useStream, type PlaybackSource } from "../video/use-stream";
 
 const fmt = (s: number) => `${Math.floor(s / 60)}:${(s % 60).toFixed(1).padStart(4, "0")}`;
 
-export function SubtitleEditor(props: { episodeId: string; number: number; drama: { id: string; title: string }; en: Cue[]; my: Cue[] }) {
+export function SubtitleEditor(props: { episodeId: string; number: number; drama: { id: string; title: string }; en: Cue[]; my: Cue[]; source: PlaybackSource }) {
   const t = useTranslations("admin");
   const video = useRef<HTMLVideoElement>(null);
+  useStream(video, props.source);
   const [rows, setRows] = useState(() =>
     props.en.map((c, i) => ({ start: c.start, end: c.end, en: c.text, my: props.my[i]?.text ?? "" })),
   );
@@ -41,7 +43,7 @@ export function SubtitleEditor(props: { episodeId: string; number: number; drama
       <div className="mt-6 grid gap-6 lg:grid-cols-[320px_1fr]">
         <div className="lg:sticky lg:top-6 lg:self-start">
           <div className="relative overflow-hidden rounded-2xl bg-black ring-1 ring-white/10">
-            <video ref={video} src={`/api/stream/${props.episodeId}`} controls className="max-h-[70dvh] w-full bg-black object-contain" onTimeUpdate={(e) => setTime(e.currentTarget.currentTime)} />
+            <video ref={video} controls className="max-h-[70dvh] w-full bg-black object-contain" onTimeUpdate={(e) => setTime(e.currentTarget.currentTime)} />
             {current && (
               <div className="pointer-events-none absolute inset-x-3 bottom-16 text-center">
                 <span lang="my" className="rounded bg-black/60 px-2 py-0.5 text-sm leading-loose">{current.my || current.en}</span>

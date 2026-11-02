@@ -5,8 +5,10 @@ import { useTranslations } from "next-intl";
 import { Check, Captions, Play, Trash2, CheckCheck, X } from "lucide-react";
 import { approveEpisodes, deleteEpisode } from "@/app/actions/admin";
 import { duration } from "@/lib/format";
+import { StreamVideo } from "../video/stream-video";
+import type { PlaybackSource } from "../video/use-stream";
 
-type Ep = { id: string; number: number; durationSec: number; status: string; hasMy: boolean };
+type Ep = { id: string; number: number; durationSec: number; status: string; hasMy: boolean; source: PlaybackSource; bunny: boolean };
 
 export function EpisodeTable({ dramaId, episodes }: { dramaId: string; episodes: Ep[] }) {
   const t = useTranslations("admin");
@@ -37,6 +39,7 @@ export function EpisodeTable({ dramaId, episodes }: { dramaId: string; episodes:
                 <div className="flex items-center gap-2">
                   <span className="font-semibold">EP {e.number}</span>
                   <span className="text-white/40">{duration(e.durationSec)}</span>
+                  <span className={e.bunny ? "rounded bg-orange-400/15 px-1.5 text-[10px] font-semibold text-orange-300" : "rounded bg-white/5 px-1.5 text-[10px] font-semibold text-white/40"}>{e.bunny ? "Bunny" : "Local"}</span>
                   {e.hasMy && <span className="rounded bg-white/10 px-1.5 text-[10px] font-semibold text-white/60">မြန်မာ</span>}
                 </div>
               </div>
@@ -57,10 +60,10 @@ export function EpisodeTable({ dramaId, episodes }: { dramaId: string; episodes:
       {preview && (
         <div className="fixed inset-0 z-50 grid place-items-center bg-black/80 p-4 backdrop-blur" onClick={() => setPreview(null)}>
           <div className="relative" onClick={(e) => e.stopPropagation()}>
-            <video src={`/api/stream/${preview.id}`} controls autoPlay className="max-h-[80dvh] rounded-2xl ring-1 ring-white/10">
+            <StreamVideo source={preview.source} controls autoPlay className="max-h-[80dvh] rounded-2xl ring-1 ring-white/10">
               <track kind="subtitles" srcLang="my" label="မြန်မာ" src={`/api/subtitles/${preview.id}/my`} default />
               <track kind="subtitles" srcLang="en" label="English" src={`/api/subtitles/${preview.id}/en`} />
-            </video>
+            </StreamVideo>
             <button onClick={() => setPreview(null)} className="absolute -right-3 -top-3 grid size-8 place-items-center rounded-full bg-white text-ink-950"><X className="size-4" /></button>
           </div>
         </div>

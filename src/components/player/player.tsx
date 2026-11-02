@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { AnimatePresence, motion } from "framer-motion";
-import { ChevronLeft, ChevronUp, ChevronDown, Captions, ListVideo, MessageCircle, Play, Pause, Volume2, VolumeX, Gauge, Maximize, Minimize } from "lucide-react";
+import { ChevronLeft, ChevronUp, ChevronDown, Captions, ListVideo, MessageCircle, Play, Pause, Volume2, VolumeX, Gauge, Maximize, Minimize, Signal } from "lucide-react";
 import clsx from "clsx";
 import { parseVtt, type Cue } from "@/lib/subtitles";
 import { saveProgress, countView } from "@/app/actions/viewer";
@@ -14,12 +14,14 @@ import { Paywall } from "./paywall";
 import { EpisodeSheet } from "./episode-sheet";
 import { LikeButton } from "./like-button";
 import { CommentsSheet } from "./comments-sheet";
+import { useQuality, useStream, type PlaybackSource, type Quality } from "../video/use-stream";
 
 export type PlayerEpisode = { id: string; number: number; durationSec: number; access: "free" | "subscriber" | "locked" };
 type Drama = { id: string; slug: string; title: string; accent: string; posterUrl: string | null; genre: string };
 type SubLang = "my" | "en" | "off";
 
 const SPEEDS = [1, 1.25, 1.5, 2];
+const NEXT_QUALITY: Record<Quality, Quality> = { auto: "saver", saver: "high", high: "auto" };
 
 export function Player(props: {
   drama: Drama;
@@ -30,6 +32,7 @@ export function Player(props: {
   startAt: number;
   defaultSubtitle: SubLang;
   social: { likes: number; liked: boolean; comments: number };
+  source: PlaybackSource | null;
 }) {
   const { drama, episodes, currentNumber, isVip, loggedIn, startAt } = props;
   const t = useTranslations("player");
@@ -59,6 +62,8 @@ export function Player(props: {
   const [landscape, setLandscape] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
   const frameRef = useRef<HTMLDivElement>(null);
+  const [quality, setQuality] = useQuality();
+  const { height, ready, isHls } = useStream(videoRef, locked ? null : props.source, { enabled: !locked, quality, startAt });
 
   // The video may load before React attaches onLoadedMetadata, so also check after mount.
   useEffect(() => {
@@ -126,15 +131,15 @@ export function Player(props: {
   // Start playback after the ad.
   useEffect(() => {
     const v = videoRef.current;
-    if (!v || showAd || locked) return;
-    if (startAt) v.currentTime = startAt;
+    if (!v || showAd || locked || !ready) return;
+    if (startAt && !isHls) v.currentTime = startAt;
     v.play().catch(() => {
       v.muted = true;
       setMuted(true);
       v.play().catch(() => {});
     });
     countView(drama.id).catch(() => {});
-  }, [showAd, locked, startAt, drama.id]);
+  }, [showAd, locked, startAt, drama.id, ready, isHls]);
 
   // Save progress every few seconds.
   useEffect(() => {
@@ -244,7 +249,6 @@ export function Player(props: {
               <>
                 <video
                   ref={videoRef}
-                  src={`/api/stream/${episode.id}`}
                   playsInline
                   preload="auto"
                   className={clsx("absolute inset-0 h-full w-full", landscape ? "object-contain" : "object-cover")}
@@ -325,6 +329,15 @@ export function Player(props: {
                 }}>
                   <Gauge className="size-6" />
                 </RailButton>
+                {isHls && (
+                  <RailButton
+                    label={quality === "saver" ? t("qualitySaver") : quality === "high" ? "HD" : height ? `${height}p` : t("qualityAuto")}
+                    active={quality !== "auto"}
+                    onClick={() => setQuality(NEXT_QUALITY[quality])}
+                  >
+                    <Signal className="size-6" />
+                  </RailButton>
+                )}
                 <RailButton label="" onClick={toggleFullscreen}>
                   {fullscreen ? <Minimize className="size-6" /> : <Maximize className="size-6" />}
                 </RailButton>

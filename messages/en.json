@@ -77,7 +77,10 @@
     "delete": "Delete",
     "share": "Share",
     "watchDrama": "Watch full drama",
-    "fullscreen": "Full screen"
+    "fullscreen": "Full screen",
+    "qualityAuto": "Auto",
+    "qualitySaver": "Saver",
+    "quality": "Quality"
   },
   "browse": {
     "title": "Browse",

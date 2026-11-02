@@ -9,6 +9,8 @@ import { Uploader } from "@/components/admin/uploader";
 import { JobsPanel } from "@/components/admin/jobs-panel";
 import { EpisodeTable } from "@/components/admin/episode-table";
 import { DramaActions } from "@/components/admin/drama-actions";
+import { playbackSource } from "@/lib/playback";
+import { bunnyEnabled } from "@/lib/bunny";
 import { PosterUpload } from "@/components/admin/poster-upload";
 
 export default async function EditDrama({ params }: { params: Promise<{ id: string }> }) {
@@ -29,7 +31,7 @@ export default async function EditDrama({ params }: { params: Promise<{ id: stri
             <Link href={`/drama/${drama.slug}`} className="flex items-center gap-1 hover:text-white"><ExternalLink className="size-3.5" />/drama/{drama.slug}</Link>
           </div>
         </div>
-        <DramaActions id={drama.id} published={drama.published} />
+        <DramaActions id={drama.id} published={drama.published} localEpisodes={drama.episodes.filter((e) => e.streamProvider !== "bunny").length} bunnyReady={bunnyEnabled()} />
       </div>
 
       <section>
@@ -43,7 +45,7 @@ export default async function EditDrama({ params }: { params: Promise<{ id: stri
       <section>
         <EpisodeTable
           dramaId={drama.id}
-          episodes={drama.episodes.map((e) => ({ id: e.id, number: e.number, durationSec: e.durationSec, status: e.status, hasMy: !!e.subtitleMy }))}
+          episodes={drama.episodes.map((e) => ({ id: e.id, number: e.number, durationSec: e.durationSec, status: e.status, hasMy: !!e.subtitleMy, source: playbackSource(e), bunny: e.streamProvider === "bunny" }))}
         />
       </section>
 

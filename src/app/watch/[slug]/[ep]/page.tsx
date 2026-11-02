@@ -6,6 +6,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { episodeAccess, getActiveSubscription } from "@/lib/access";
 import { localized } from "@/lib/format";
 import { Player, type PlayerEpisode } from "@/components/player/player";
+import { playbackSource } from "@/lib/playback";
 
 type Params = { params: Promise<{ slug: string; ep: string }> };
 
@@ -21,7 +22,7 @@ export default async function WatchPage({ params }: Params) {
   const [locale, user] = await Promise.all([getLocale(), getCurrentUser()]);
   const drama = await db.drama.findUnique({
     where: { slug },
-    include: { episodes: { where: { status: "READY" }, orderBy: { number: "asc" }, select: { id: true, number: true, durationSec: true } } },
+    include: { episodes: { where: { status: "READY" }, orderBy: { number: "asc" }, select: { id: true, number: true, durationSec: true, streamProvider: true, streamId: true } } },
   });
   if (!drama || (!drama.published && user?.role !== "ADMIN")) notFound();
   const current = drama.episodes.find((e) => e.number === number);
@@ -46,6 +47,8 @@ export default async function WatchPage({ params }: Params) {
     access: user?.role === "ADMIN" ? "free" : episodeAccess(e.number, drama.freeEpisodes, isVip),
   }));
 
+  const currentAccess = episodes.find((e) => e.id === current.id)!.access;
+
   return (
     <Player
       key={current.id}
@@ -56,6 +59,7 @@ export default async function WatchPage({ params }: Params) {
       loggedIn={!!user}
       startAt={progress && progress.positionSec < current.durationSec - 3 ? progress.positionSec : 0}
       defaultSubtitle="my"
+      source={currentAccess === "locked" ? null : playbackSource(current)}
       social={{ likes: likes?.likesCount ?? 0, liked: !!myLike, comments }}
     />
   );

@@ -6,6 +6,7 @@ import { getActiveSubscription } from "@/lib/access";
 import { localized, mediaUrl } from "@/lib/format";
 import { Feed, type FeedItem } from "@/components/feed/feed";
 import { BottomNav } from "@/components/bottom-nav";
+import { playbackSource } from "@/lib/playback";
 
 export const metadata: Metadata = { title: "For You" };
 export const dynamic = "force-dynamic";
@@ -47,7 +48,8 @@ export default async function FeedPage() {
       episodes: d._count.episodes,
       episodeId: ep.id,
       episodeNumber: ep.number,
-      src: canPlay ? `/api/stream/${ep.id}` : mediaUrl(d.previewKey),
+      source: canPlay ? playbackSource(ep) : d.previewKey ? { type: "mp4", url: mediaUrl(d.previewKey)! } : null,
+      fullEpisode: canPlay,
       poster: mediaUrl(ep.thumbKey) ?? d.posterUrl,
       likes: ep.likesCount,
       liked: myLikes.has(ep.id),

@@ -77,7 +77,10 @@
     "delete": "",
     "share": "",
     "watchDrama": "",
-    "fullscreen": ""
+    "fullscreen": "",
+    "qualityAuto": "",
+    "qualitySaver": "",
+    "quality": ""
   },
   "browse": {
     "title": "",

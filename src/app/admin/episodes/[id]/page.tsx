@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import { parseVtt } from "@/lib/subtitles";
+import { playbackSource } from "@/lib/playback";
 import { SubtitleEditor } from "@/components/admin/subtitle-editor";
 
 export default async function EpisodeSubtitles({ params }: { params: Promise<{ id: string }> }) {
@@ -14,6 +15,7 @@ export default async function EpisodeSubtitles({ params }: { params: Promise<{ i
       drama={ep.drama}
       en={parseVtt(ep.subtitleEn ?? "")}
       my={parseVtt(ep.subtitleMy ?? "")}
+      source={playbackSource(ep)}
     />
   );
 }
