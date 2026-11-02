@@ -1,5 +1,5 @@
 # Automatic HTTPS for your domain (Let's Encrypt).
-{$DOMAIN}, www.{$DOMAIN} {
+{$DOMAIN} {
 	encode zstd gzip
 	request_body {
 		max_size 3GB

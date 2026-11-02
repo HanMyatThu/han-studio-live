@@ -86,6 +86,8 @@ EOF
   green "Saved settings to $DIR/.env (storage: $STORAGE, translation: $TRANSLATE)"
 fi
 DOMAIN="$(grep '^DOMAIN=' .env | cut -d'"' -f2)"
+# Add www. only for a main domain (zat.com), not for a subdomain (zat.example.com).
+SITES="$DOMAIN"; [ "$(tr -cd '.' <<<"$DOMAIN" | wc -c)" -eq 1 ] && SITES="$DOMAIN, www.$DOMAIN"
 
 # 4. Swap, so building and video processing don't run out of memory
 SWAP_MB=$(free -m | awk '/^Swap:/ {print $2}')
@@ -134,7 +136,7 @@ if [ -n "$PROXY" ]; then
       cat >> "$CADDYFILE" <<EOF
 
 # Zat (added by zat install.sh)
-$DOMAIN, www.$DOMAIN {
+$SITES {
 	encode zstd gzip
 	request_body {
 		max_size 3GB
