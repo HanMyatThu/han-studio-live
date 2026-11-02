@@ -44,6 +44,7 @@ else
   ask ADMIN_EMAIL "Admin email"
   ask ADMIN_PASSWORD "Admin password (hidden)" "" secret
   [ ${#ADMIN_PASSWORD} -ge 8 ] || { red "Use at least 8 characters."; exit 1; }
+  [ "$ADMIN_PASSWORD" != "admin1234" ] || { red "Choose a different password than the demo one."; exit 1; }
   ask BUNNY_LIB "Bunny Video Library ID (optional)"
   ask BUNNY_KEY "Bunny API Key (optional, hidden)" "" secret
   ask BUNNY_CDN "Bunny CDN Hostname, e.g. vz-xxxx.b-cdn.net (optional)"
