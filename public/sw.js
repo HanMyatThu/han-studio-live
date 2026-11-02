@@ -1,4 +1,4 @@
-/* Zat service worker: makes the site installable and shows an offline page.
+/* Zat Lan service worker: makes the site installable and shows an offline page.
    Videos and API calls are never cached. */
 const VERSION = "zat-v1";
 const OFFLINE_URL = "/offline";

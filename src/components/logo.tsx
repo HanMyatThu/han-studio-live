@@ -5,7 +5,7 @@ export function Logo({ className = "" }: { className?: string }) {
         <svg viewBox="0 0 24 24" className="size-4 fill-white"><path d="M8 5.5v13l10-6.5z" /></svg>
       </span>
       <span className="font-display text-xl font-extrabold tracking-tight">
-        Zat<span className="text-gradient">.</span>
+        Zat Lan<span className="text-gradient">.</span>
       </span>
     </span>
   );

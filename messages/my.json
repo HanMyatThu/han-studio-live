@@ -245,5 +245,141 @@
     "offlineTitle": "",
     "offlineBody": "",
     "retry": ""
+  },
+  "pages": {
+    "contact": "",
+    "updated": "",
+    "faq": {
+      "title": "",
+      "intro": "",
+      "items": {
+        "what": {
+          "q": "",
+          "a": ""
+        },
+        "free": {
+          "q": "",
+          "a": ""
+        },
+        "vip": {
+          "q": "",
+          "a": ""
+        },
+        "pay": {
+          "q": "",
+          "a": ""
+        },
+        "subs": {
+          "q": "",
+          "a": ""
+        },
+        "data": {
+          "q": "",
+          "a": ""
+        },
+        "install": {
+          "q": "",
+          "a": ""
+        },
+        "account": {
+          "q": "",
+          "a": ""
+        },
+        "problem": {
+          "q": "",
+          "a": ""
+        },
+        "delete": {
+          "q": "",
+          "a": ""
+        }
+      }
+    },
+    "terms": {
+      "title": "",
+      "intro": "",
+      "sections": {
+        "use": {
+          "h": "",
+          "p": ""
+        },
+        "account": {
+          "h": "",
+          "p": ""
+        },
+        "content": {
+          "h": "",
+          "p": ""
+        },
+        "vip": {
+          "h": "",
+          "p": ""
+        },
+        "comments": {
+          "h": "",
+          "p": ""
+        },
+        "ads": {
+          "h": "",
+          "p": ""
+        },
+        "changes": {
+          "h": "",
+          "p": ""
+        },
+        "liability": {
+          "h": "",
+          "p": ""
+        },
+        "contact": {
+          "h": "",
+          "p": ""
+        }
+      }
+    },
+    "privacy": {
+      "title": "",
+      "intro": "",
+      "sections": {
+        "collect": {
+          "h": "",
+          "p": ""
+        },
+        "use": {
+          "h": "",
+          "p": ""
+        },
+        "cookies": {
+          "h": "",
+          "p": ""
+        },
+        "ads": {
+          "h": "",
+          "p": ""
+        },
+        "video": {
+          "h": "",
+          "p": ""
+        },
+        "keep": {
+          "h": "",
+          "p": ""
+        },
+        "rights": {
+          "h": "",
+          "p": ""
+        },
+        "contact": {
+          "h": "",
+          "p": ""
+        }
+      }
+    }
+  },
+  "footer": {
+    "faq": "",
+    "terms": "",
+    "privacy": "",
+    "contact": ""
   }
 }

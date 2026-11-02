@@ -2,8 +2,8 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Zat · Short dramas",
-    short_name: "Zat",
+    name: "Zat Lan · Short dramas",
+    short_name: "Zat Lan",
     description: "Bite-sized drama episodes with Burmese subtitles.",
     start_url: "/",
     scope: "/",

@@ -10,10 +10,10 @@ const sora = Sora({ subsets: ["latin"], variable: "--font-sora", weight: ["400",
 const myanmar = Noto_Sans_Myanmar({ subsets: ["myanmar"], variable: "--font-myanmar", weight: ["400", "500", "700"] });
 
 export const metadata: Metadata = {
-  title: { default: "Zat · Short dramas with Burmese subtitles", template: "%s · Zat" },
+  title: { default: "Zat Lan · Short dramas with Burmese subtitles", template: "%s · Zat Lan" },
   description: "Bite-sized drama episodes with Burmese subtitles.",
-  applicationName: "Zat",
-  appleWebApp: { capable: true, title: "Zat", statusBarStyle: "black-translucent" },
+  applicationName: "Zat Lan",
+  appleWebApp: { capable: true, title: "Zat Lan", statusBarStyle: "black-translucent" },
   icons: { icon: "/icons/icon-192.png", apple: "/icons/apple-touch-icon.png" },
   formatDetection: { telephone: false },
 };

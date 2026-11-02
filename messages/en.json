@@ -1,6 +1,6 @@
 {
   "brand": {
-    "name": "Zat",
+    "name": "Zat Lan",
     "tagline": "Bite-sized dramas. Burmese subtitles. Endless cliffhangers."
   },
   "nav": {
@@ -116,7 +116,7 @@
     "password": "Password",
     "login": "Log in",
     "register": "Sign up",
-    "noAccount": "New to Zat?",
+    "noAccount": "New to Zat Lan?",
     "haveAccount": "Already have an account?",
     "invalid": "Wrong email or password.",
     "exists": "An account with this email already exists.",
@@ -237,13 +237,149 @@
     "tapForSound": "Tap for sound"
   },
   "pwa": {
-    "installTitle": "Install Zat",
-    "installBody": "Add Zat to your home screen for a full-screen app experience.",
+    "installTitle": "Install Zat Lan",
+    "installBody": "Add Zat Lan to your home screen for a full-screen app experience.",
     "install": "Install",
     "later": "Not now",
     "iosHint": "Tap Share, then “Add to Home Screen”.",
     "offlineTitle": "You're offline",
     "offlineBody": "Check your connection and try again.",
     "retry": "Try again"
+  },
+  "pages": {
+    "contact": "Contact us",
+    "updated": "Last updated: {date}",
+    "faq": {
+      "title": "Frequently asked questions",
+      "intro": "Quick answers about watching on Zat Lan. Can't find yours? Email us at {email}.",
+      "items": {
+        "what": {
+          "q": "What is Zat Lan?",
+          "a": "Zat Lan is a place to watch short dramas in bite-sized episodes, with Burmese and English subtitles. Most episodes are just a few minutes long, made for watching on your phone."
+        },
+        "free": {
+          "q": "Is it free?",
+          "a": "Yes. The first episodes of every drama are free to watch, with ads. To keep watching the rest of a drama without ads, you can get a VIP Pass."
+        },
+        "vip": {
+          "q": "What does a VIP Pass include?",
+          "a": "A VIP Pass unlocks every episode of every drama with no ads for as long as the pass is active (one week, one month or three months). A pass does not renew automatically."
+        },
+        "pay": {
+          "q": "How do I pay?",
+          "a": "You can pay with popular Myanmar mobile wallets and cards on the VIP page. Your pass starts as soon as the payment is confirmed."
+        },
+        "subs": {
+          "q": "How do I change the subtitles?",
+          "a": "While watching, tap the subtitles button on the right side of the player to switch between Burmese, English or off. Your choice is remembered for the next episode."
+        },
+        "data": {
+          "q": "How can I use less mobile data?",
+          "a": "Tap the quality button in the player and choose Saver. Videos then play at a lower resolution and use about a third of the data. On slow connections, Saver is turned on automatically."
+        },
+        "install": {
+          "q": "Is there an app?",
+          "a": "You can install Zat Lan on your phone's home screen straight from the browser. Open the site and choose \"Install\" or \"Add to Home Screen\". It then opens full screen like an app."
+        },
+        "account": {
+          "q": "Do I need an account?",
+          "a": "You can watch free episodes without an account. You need an account to buy a VIP Pass, save favourites, continue where you left off, like and comment."
+        },
+        "problem": {
+          "q": "A video won't play. What should I do?",
+          "a": "Check your internet connection, refresh the page and try again. If it still doesn't work, email us with the drama name and episode number and we'll look into it."
+        },
+        "delete": {
+          "q": "How do I delete my account?",
+          "a": "Email us from the address you signed up with and we will delete your account and its data."
+        }
+      }
+    },
+    "terms": {
+      "title": "Terms and conditions",
+      "intro": "These terms apply when you use Zat Lan, a service run by Han Studio. By using the site you agree to them.",
+      "sections": {
+        "use": {
+          "h": "Using Zat Lan",
+          "p": "You may use Zat Lan for your own personal, non-commercial viewing. You must be at least 13 years old. Some dramas may only be suitable for older viewers."
+        },
+        "account": {
+          "h": "Your account",
+          "p": "Keep your password safe. You are responsible for activity on your account. We may suspend or close accounts that break these terms, for example for abusive comments, sharing accounts commercially or trying to get around payments."
+        },
+        "content": {
+          "h": "Content and copyright",
+          "p": "All videos, subtitles and artwork on Zat Lan are owned by us or our licensors and are protected by copyright. You may not download, copy, re-upload, record or share them outside the site. If you believe something on Zat Lan infringes your rights, email us and we will review it promptly."
+        },
+        "vip": {
+          "h": "VIP Passes and payments",
+          "p": "A VIP Pass gives access to all episodes without ads for the period you bought. Passes do not renew automatically. Prices are shown in Myanmar Kyat before you pay. Payments are non-refundable once a pass is active, except where the law requires otherwise or if the service was not available because of a fault on our side."
+        },
+        "comments": {
+          "h": "Comments",
+          "p": "Be respectful. Do not post hate speech, harassment, spam, personal information of others or illegal content. We may remove comments and block accounts without notice."
+        },
+        "ads": {
+          "h": "Advertising",
+          "p": "Free episodes are supported by ads, including ads served by Google. We are not responsible for the products or websites advertised."
+        },
+        "changes": {
+          "h": "Changes to the service",
+          "p": "Dramas may be added or removed at any time, for example when a licence ends. We may update these terms; the date at the top shows the latest version. Continuing to use Zat Lan means you accept the updated terms."
+        },
+        "liability": {
+          "h": "Liability",
+          "p": "Zat Lan is provided \"as is\". We do our best to keep it running smoothly but cannot promise it will always be available or error-free. To the extent allowed by law, we are not liable for indirect losses from using the service."
+        },
+        "contact": {
+          "h": "Contact",
+          "p": "Questions about these terms? Email {email}."
+        }
+      }
+    },
+    "privacy": {
+      "title": "Privacy policy",
+      "intro": "This policy explains what information Zat Lan collects and how it is used.",
+      "sections": {
+        "collect": {
+          "h": "What we collect",
+          "p": "When you create an account: your name, email address and a securely hashed password. When you watch: which episodes you watch, your progress, likes, favourites and comments. When you buy a pass: the plan, amount and payment reference (we do not store your card or wallet details). We also keep basic technical logs such as IP address and browser type to keep the service secure."
+        },
+        "use": {
+          "h": "How we use it",
+          "p": "To run your account, remember where you stopped, unlock VIP episodes, show your comments, prevent abuse and improve the service. We do not sell your personal information."
+        },
+        "cookies": {
+          "h": "Cookies",
+          "p": "We use a cookie to keep you logged in and one to remember your language. Your device also stores settings like subtitle language and video quality."
+        },
+        "ads": {
+          "h": "Ads and Google",
+          "p": "Free episodes show ads from Google and its partners. Google uses cookies to show ads based on your visits to this and other websites. You can turn off personalised ads at adssettings.google.com. Learn more at policies.google.com/technologies/ads."
+        },
+        "video": {
+          "h": "Video delivery",
+          "p": "Videos are delivered through our streaming provider (Bunny.net), which processes your IP address to send the video to you quickly."
+        },
+        "keep": {
+          "h": "How long we keep it",
+          "p": "We keep your account data while your account is active. If you ask us to delete your account, we delete your personal data, except payment records we must keep by law."
+        },
+        "rights": {
+          "h": "Your choices",
+          "p": "You can ask us for a copy of your data, to correct it or to delete your account by emailing {email}."
+        },
+        "contact": {
+          "h": "Contact",
+          "p": "Questions about privacy? Email {email}."
+        }
+      }
+    }
+  },
+  "footer": {
+    "faq": "FAQ",
+    "terms": "Terms",
+    "privacy": "Privacy",
+    "contact": "Contact us"
   }
 }
