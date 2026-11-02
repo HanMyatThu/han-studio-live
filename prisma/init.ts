@@ -15,7 +15,7 @@ async function main() {
   ];
   for (const p of plans) await db.plan.upsert({ where: { code: p.code }, update: {}, create: p });
 
-  const email = process.env.ADMIN_EMAIL;
+  const email = process.env.ADMIN_EMAIL?.trim().toLowerCase();
   const password = process.env.ADMIN_PASSWORD;
   if (!email || !password || password === "admin1234") {
     console.warn("ADMIN_EMAIL / ADMIN_PASSWORD not set (or still the demo password). Skipping admin account.");

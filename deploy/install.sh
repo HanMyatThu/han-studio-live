@@ -43,6 +43,8 @@ else
   [ -n "$DOMAIN" ] || { red "A domain is required."; exit 1; }
   ask ADMIN_EMAIL "Admin email"
   ask ADMIN_PASSWORD "Admin password (hidden)" "" secret
+  ask ADMIN_PASSWORD2 "Type the admin password again (hidden)" "" secret
+  [ "$ADMIN_PASSWORD" = "$ADMIN_PASSWORD2" ] || { red "Passwords do not match."; exit 1; }
   [ ${#ADMIN_PASSWORD} -ge 8 ] || { red "Use at least 8 characters."; exit 1; }
   [ "$ADMIN_PASSWORD" != "admin1234" ] || { red "Choose a different password than the demo one."; exit 1; }
   ask BUNNY_LIB "Bunny Video Library ID (optional)"
