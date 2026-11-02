@@ -11,7 +11,7 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
     ports:
-      - "127.0.0.1:5432:5432"
+      - "127.0.0.1:${DB_PORT:-5432}:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U zat"]
       interval: 5s
@@ -28,6 +28,9 @@ services:
     env_file: .env
     environment:
       DATABASE_URL: postgresql://zat:${POSTGRES_PASSWORD:-zat}@db:5432/zat
+    ports:
+      # Only reachable from the server itself. Lets an existing nginx/Caddy proxy to Zat.
+      - "127.0.0.1:${APP_PORT:-3010}:3000"
     volumes:
       - storage:/app/storage
     depends_on:
